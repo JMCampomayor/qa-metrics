@@ -1,0 +1,627 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="metric.png" type="image/x-icon">
+  <link rel="shortcut icon" href="metric.png" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Excel Metrics Dashboard</title>
+  <!-- Bootstrap CSS for layout and styling -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Custom CSS -->
+  <style>
+    :root {
+      --primary: #4361ee;
+      --secondary: #3f37c9;
+      --accent: #4895ef;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --success: #4cc9f0;
+      --warning: #f72585;
+      --info: #4361ee;
+      --card-shadow: 0 8px 16px rgba(0,0,0,0.12);
+      --transition: all 0.3s ease;
+    }
+    
+    body {
+      background-color: #f5f7fa;
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      color: var(--dark);
+    }
+    
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 1.5rem 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      margin: 0;
+    }
+    
+    header p {
+      opacity: 0.8;
+      margin-top: 0.5rem;
+      font-weight: 300;
+    }
+    
+    #alert {
+      text-align: center;
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      border-radius: 8px;
+      background-color: rgba(231, 76, 60, 0.1);
+      color: #E53E3E;
+      font-weight: 500;
+      display: none;
+    }
+    
+    #alert.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    #upload-container {
+      background-color: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+    }
+    
+    #upload-container:hover {
+      transform: translateY(-5px);
+    }
+    
+    .file-upload-wrapper {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    
+    .custom-file-upload {
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      padding: 2rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .custom-file-upload:hover {
+      border-color: var(--primary);
+      background-color: rgba(67, 97, 238, 0.05);
+    }
+    
+    .custom-file-upload i {
+      font-size: 2.5rem;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+    
+    .custom-file-upload p {
+      color: #666;
+      margin: 0;
+    }
+    
+    #excelFile {
+      display: none;
+    }
+    
+    #sheet-selector {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .filter-section {
+      background-color: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--card-shadow);
+    }
+    
+    .filter-item {
+      display: inline-block;
+      margin-right: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .filter-label {
+      font-weight: 500;
+      color: #555;
+      margin-bottom: 0.25rem;
+    }
+    
+    select.form-select {
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      padding: 0.5rem 2.5rem 0.5rem 1rem;
+      font-size: 0.95rem;
+      background-color: white;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    select.form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+    }
+    
+    #metrics-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1.5rem;
+      width: 100%;
+      margin: 0 auto 2rem;
+    }
+    
+    .metric-card {
+      padding: 1.75rem;
+      border-radius: 12px;
+      background: white;
+      box-shadow: var(--card-shadow);
+      text-align: center;
+      transition: var(--transition);
+      border-top: 4px solid var(--primary);
+    }
+    
+    .metric-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .metric-card .section-title {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #555;
+      margin-bottom: 0.75rem;
+    }
+    
+    .metric-card .metric-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1.2;
+    }
+    
+    .metric-card.overdue .metric-number {
+      color: var(--warning);
+    }
+    
+    .metric-card.success .metric-number {
+      color: var(--success);
+    }
+    
+    .chart-box {
+      background: white;
+      border-radius: 12px;
+      padding: 1.75rem;
+      box-shadow: var(--card-shadow);
+      position: relative;
+      min-height: 400px;
+      margin-bottom: 1.5rem;
+      transition: var(--transition);
+    }
+    
+    .chart-box:hover {
+      transform: translateY(-5px);
+    }
+    
+    .chart-box .section-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .chart-box canvas {
+      display: block;
+      width: 100% !important;
+      height: 380px !important;
+    }
+    
+    #projectChart {
+      height: 800px !important;
+    }
+    
+    .metric-card.top-project {
+      grid-column: span 2;
+      word-wrap: break-word;
+    }
+    
+    footer {
+      background-color: var(--dark);
+      color: white;
+      text-align: center;
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      #metrics-cards {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      }
+      
+      .filter-item {
+        display: block;
+        margin-right: 0;
+        margin-bottom: 1rem;
+      }
+      
+      .metric-card.top-project {
+        grid-column: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="py-4">
+    <div class="container">
+      <h1><i class="fas fa-chart-line me-2"></i> Excel Metrics Dashboard</h1>
+      <p>Visualize and analyze your test metrics</p>
+    </div>
+  </header>
+
+  <main class="container py-4">
+    <div id="alert" role="alert"></div>
+
+    <section id="upload-section" class="mb-4">
+      <div id="upload-container">
+        <h3 class="mb-3">Upload Your Data</h3>
+        <div class="file-upload-wrapper">
+          <label for="excelFile" class="custom-file-upload w-100">
+            <i class="fas fa-file-excel"></i>
+            <h5>Drop your Excel file here</h5>
+            <p>or click to browse files</p>
+          </label>
+          <input type="file" id="excelFile" accept=".xlsx" class="form-control" />
+        </div>
+        <p class="text-muted text-center"><i class="fas fa-info-circle me-1"></i> Select an Excel file exported from Google Sheets</p>
+      </div>
+      
+      <div id="sheet-selector" class="mb-3">
+        <div class="d-flex align-items-center justify-content-center">
+          <i class="fas fa-table me-2 text-primary"></i>
+          <label for="sheetSelect" class="me-2 mb-0">Choose a sheet:</label>
+          <select id="sheetSelect" class="form-select d-inline w-auto"></select>
+        </div>
+      </div>
+    </section>
+
+    <section class="filter-section">
+      <div class="row align-items-center">
+        <div class="col-md-4">
+          <div class="filter-item">
+            <label class="filter-label" for="filterMonth"><i class="fas fa-calendar-alt me-1"></i> Filter by Month:</label>
+            <select id="filterMonth" class="form-select w-100">
+              <option value="all">All Months</option>
+              <option>January</option><option>February</option><option>March</option><option>April</option>
+              <option>May</option><option>June</option><option>July</option><option>August</option>
+              <option>September</option><option>October</option><option>November</option><option>December</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="filter-item">
+            <label class="filter-label" for="filterTester"><i class="fas fa-user me-1"></i> Filter by Tester:</label>
+            <select id="filterTester" class="form-select w-100">
+              <option value="all">All Testers</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="filter-item">
+            <label class="filter-label" for="groupBy"><i class="fas fa-layer-group me-1"></i> Group By:</label>
+            <select id="groupBy" class="form-select w-100">
+              <option value="none">None</option>
+              <option value="Project Name">Project</option>
+              <option value="Status">Status</option>
+              <option value="Tags">Tag</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Metric Cards: one per metric -->
+    <section id="metrics-section" class="mb-4">
+      <h3 class="mb-3"><i class="fas fa-tachometer-alt me-2"></i> Key Metrics</h3>
+      <div id="metrics-cards"></div>
+    </section>
+
+    <!-- Charts -->
+    <section id="charts-section">
+      <h3 class="mb-3"><i class="fas fa-chart-bar me-2"></i> Data Visualizations</h3>
+      
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="chart-box">
+            <div class="section-title"><i class="fas fa-tasks me-2"></i> Tests by Status</div>
+            <canvas id="statusChart"></canvas>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="chart-box">
+            <div class="section-title"><i class="fas fa-hourglass-half me-2"></i> Overdue vs On-Time</div>
+            <canvas id="overdueChart"></canvas>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="chart-box">
+            <div class="section-title"><i class="fas fa-tags me-2"></i> Tag Distribution</div>
+            <canvas id="tagChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-12">
+          <div class="chart-box">
+            <div class="section-title"><i class="fas fa-calendar-day me-2"></i> Tests Over Months</div>
+            <canvas id="monthChart"></canvas>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="chart-box">
+            <div class="section-title"><i class="fas fa-calendar-week me-2"></i> Tests by Week No.</div>
+            <canvas id="weekChart"></canvas>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="chart-box">
+            <div class="section-title"><i class="fas fa-project-diagram me-2"></i> Tests by Project</div>
+            <canvas id="projectChart"></canvas>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="chart-box">
+            <div class="section-title"><i class="fas fa-users me-2"></i> Tester Distribution</div>
+            <canvas id="testerChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 QA Team. Created by Jerry May Campomayor</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+  <script>
+    function parseCellDate(value) {
+      if (value instanceof Date && !isNaN(value)) return value;
+      if (typeof value === 'string') {
+        let d = new Date(value);
+        if (!isNaN(d)) return d;
+      }
+      if (typeof value === 'number') {
+        return new Date((value - 25569) * 86400 * 1000);
+      }
+      return null;
+    }
+
+    let workbookData = null;
+    let rawData = [];
+    const alertDiv = document.getElementById('alert');
+    const sheetSelect = document.getElementById('sheetSelect');
+    const filterMonth = document.getElementById('filterMonth');
+    const filterTester = document.getElementById('filterTester');
+    const groupBy = document.getElementById('groupBy');
+
+    const REQUIRED_COLUMNS = [
+      "Month","Week No.","Project Name","Test no.","TW Link","TW Title",
+      "Status","Tags","Testing started on","Deadline","Completed/Closed at",
+      "Remarks/Roadblocks/Notes","Name"
+    ];
+
+    document.getElementById('excelFile').addEventListener('change', handleFile);
+    filterMonth.addEventListener('change', applyFilters);
+    filterTester.addEventListener('change', applyFilters);
+    groupBy.addEventListener('change', applyFilters);
+
+    function handleFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = evt => {
+        const data = new Uint8Array(evt.target.result);
+        try {
+          workbookData = XLSX.read(data, { type: 'array' });
+          populateSheetSelector();
+          alertDiv.textContent = "";
+        } catch {
+          alertDiv.textContent = "Error reading Excel file.";
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function populateSheetSelector() {
+      sheetSelect.innerHTML = '';
+      workbookData.SheetNames.forEach(name => sheetSelect.append(new Option(name, name)));
+      document.getElementById('sheet-selector').style.display = 'block';
+      sheetSelect.onchange = () => loadSheetData(sheetSelect.value);
+      loadSheetData(workbookData.SheetNames[0]);
+    }
+
+    function loadSheetData(sheetName) {
+      const ws = workbookData.Sheets[sheetName];
+      rawData = XLSX.utils.sheet_to_json(ws, { defval: "" });
+
+      // populate Tester dropdown
+      const names = [...new Set(rawData.map(r => r.Name).filter(n => n))].sort();
+      filterTester.innerHTML = `<option value="all">All</option>` +
+        names.map(n => `<option>${n}</option>`).join('');
+
+      applyFilters();
+    }
+
+    function applyFilters() {
+      let data = rawData.slice();
+      const m = filterMonth.value.toLowerCase();
+      if (m !== 'all') {
+        data = data.filter(r => r.Month && r.Month.toLowerCase() === m);
+      }
+      const t = filterTester.value;
+      if (t !== 'all') {
+        data = data.filter(r => r.Name === t);
+      }
+
+      renderMetrics(data);
+      renderCharts(data);
+    }
+
+    // Destroy existing chart on canvas
+    function destroyCanvas(id) {
+      const chart = Chart.getChart(id);
+      if (chart) chart.destroy();
+    }
+
+    function renderMetrics(data) {
+      const d = document.getElementById('metrics-cards');
+      d.innerHTML = '';
+
+      let overdue = 0, ontime = 0, inProg = 0, startedNC = 0, completedMonth = 0;
+      let totalDur = 0, cntDur = 0, minDur = Infinity, maxDur = 0;
+      const today = new Date();
+      const filterM = filterMonth.value;
+
+      const testers = {}, projs = {};
+
+      data.forEach(r => {
+        const dl = parseCellDate(r.Deadline);
+        const cl = r['Completed/Closed at'] ? parseCellDate(r['Completed/Closed at']) : null;
+        const st = parseCellDate(r['Testing started on']);
+
+        // overdue/on-time
+        if (dl) {
+          if (!cl && dl < today) overdue++;
+          else if (cl && cl > dl) overdue++;
+          else if (cl) ontime++;
+        }
+        // in progress & started not closed
+        if (st && !cl) { inProg++; startedNC++; }
+        // completed this month (matches filterMonth)
+        if (cl && (filterM === 'all' || cl.toLocaleString('default', { month: 'long' }) === filterM)) {
+          completedMonth++;
+        }
+        // durations
+        if (st && cl) {
+          const diff = Math.ceil((cl - st) / (1000*60*60*24)) || 1;
+          totalDur += diff; cntDur++;
+          minDur = Math.min(minDur, diff);
+          maxDur = Math.max(maxDur, diff);
+        }
+        // testers/projs for unique/top
+        if (r.Name) testers[r.Name] = (testers[r.Name] || 0) + 1;
+        if (r['Project Name']) projs[r['Project Name']] = (projs[r['Project Name']] || 0) + 1;
+      });
+
+      const avgDur = cntDur ? (totalDur / cntDur).toFixed(2) : 'N/A';
+      const minD = minDur === Infinity ? 'N/A' : minDur;
+      const maxD = maxDur === 0 ? 'N/A' : maxDur;
+
+      const uniqueTesters = Object.keys(testers).length;
+      const topTester = Object.entries(testers).sort((a,b) => b[1]-a[1])[0]?.[0] || 'N/A';
+      const topProject = Object.entries(projs).sort((a,b) => b[1]-a[1])[0]?.[0] || 'N/A';
+
+      function addCard(title, value) {
+        const c = document.createElement('div');
+        c.className = 'metric-card';
+
+if (title === 'Top Project') {
+  c.classList.add('top-project');
+}
+
+        c.innerHTML = `<div class="section-title">${title}</div><div class="metric-number">${value}</div>`;
+        d.appendChild(c);
+      }
+
+      addCard('Total Tests', data.length);
+      addCard('Overdue Tests', overdue);
+      addCard('On-Time Tests', ontime);
+      addCard('In Progress', inProg);
+      addCard('Started Not Closed', startedNC);
+      addCard(`Completed (${filterM})`, completedMonth);
+      addCard('Avg. Duration (days)', avgDur);
+      addCard('Min Duration (days)', minD);
+      addCard('Max Duration (days)', maxD);
+      addCard('Unique Testers', uniqueTesters);
+      addCard('Top Tester', topTester);
+      addCard('Top Project', topProject);
+    }
+
+    function renderCharts(data) {
+      // groupBy first bucket
+      const gb = groupBy.value;
+      const buckets = {};
+      data.forEach(r => {
+        const key = (gb === 'none' || !r[gb]) ? 'All Data' : r[gb];
+        (buckets[key] || (buckets[key] = [])).push(r);
+      });
+      const use = buckets[Object.keys(buckets)[0]] || [];
+
+      let sts = {}, tags = {}, projs = {}, weeks = {}, months = {}, testers = {}, overdue=0, ontime=0;
+      use.forEach(r => {
+        const dl = parseCellDate(r.Deadline);
+        const cl = r['Completed/Closed at'] ? parseCellDate(r['Completed/Closed at']) : null;
+        if (r.Status) sts[r.Status] = (sts[r.Status]||0)+1;
+        if (dl) {
+          if (!cl && dl < new Date()) overdue++;
+          else if (cl && cl > dl) overdue++;
+          else if (cl) ontime++;
+        }
+        if (r.Tags) r.Tags.split(',').map(x=>x.trim()).filter(x=>x).forEach(t=>tags[t] = (tags[t]||0)+1);
+        if (r['Project Name']) projs[r['Project Name']] = (projs[r['Project Name']]||0)+1;
+        if (r['Week No.']) weeks[r['Week No.']] = (weeks[r['Week No.']]||0)+1;
+        if (r.Month) months[r.Month] = (months[r.Month]||0)+1;
+        if (r.Name) testers[r.Name] = (testers[r.Name]||0)+1;
+      });
+
+      ['statusChart','overdueChart','tagChart','monthChart','weekChart','projectChart','testerChart']
+        .forEach(id => destroyCanvas(id));
+
+      const base = { responsive:true, maintainAspectRatio:false, plugins:{ datalabels:{ anchor:'end', align:'top', formatter:v=>v } } };
+
+      new Chart(document.getElementById('statusChart'), { type:'bar', data:{ labels:Object.keys(sts), datasets:[{ label:'Count', data:Object.values(sts) }]}, options:{ ...base, plugins:{ ...base.plugins, title:{ display:true, text:'Tests by Status' } } }, plugins:[ChartDataLabels] });
+      new Chart(document.getElementById('overdueChart'), { type:'bar', data:{ labels:['Overdue','On-Time'], datasets:[{ label:'Count', data:[overdue,ontime] }]}, options:{ ...base, plugins:{ ...base.plugins, title:{ display:true, text:'Overdue vs On-Time' } } }, plugins:[ChartDataLabels] });
+      new Chart(document.getElementById('tagChart'), { type:'pie', data:{ labels:Object.keys(tags), datasets:[{ label:'Count', data:Object.values(tags) }]}, options:{ ...base, plugins:{ ...base.plugins, title:{ display:true, text:'Tag Distribution' }, datalabels:{ color:'#fff' } } }, plugins:[ChartDataLabels] });
+      new Chart(document.getElementById('monthChart'), { type:'line', data:{ labels:Object.keys(months).sort(), datasets:[{ label:'Count', data:Object.keys(months).sort().map(m=>months[m]), fill:false, tension:0.1 }]}, options:{ ...base, plugins:{ ...base.plugins, title:{ display:true, text:'Tests Over Months' } } }, plugins:[ChartDataLabels] });
+      new Chart(document.getElementById('weekChart'), { type:'bar', data:{ labels:Object.keys(weeks).sort(), datasets:[{ label:'Count', data:Object.keys(weeks).sort().map(w=>weeks[w]) }]}, options:{ ...base, plugins:{ ...base.plugins, title:{ display:true, text:'Tests by Week No.' } } }, plugins:[ChartDataLabels] });
+      new Chart(document.getElementById('projectChart'), { type:'bar', data:{ labels:Object.keys(projs), datasets:[{ label:'Count', data:Object.values(projs) }]}, options:{ ...base, indexAxis:'y', plugins:{ ...base.plugins, title:{ display:true, text:'Tests by Project' } } }, plugins:[ChartDataLabels] });
+      new Chart(document.getElementById('testerChart'), { type:'bar', data:{ labels:Object.keys(testers), datasets:[{ label:'Count', data:Object.values(testers) }]}, options:{ ...base, indexAxis:'y', plugins:{ ...base.plugins, title:{ display:true, text:'Tester Distribution' } } }, plugins:[ChartDataLabels] });
+    }
+  </script>
+</body>
+</html>
