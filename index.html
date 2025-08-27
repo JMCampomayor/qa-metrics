@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,6 +23,8 @@
       --success: #4cc9f0;
       --warning: #f72585;
       --info: #4361ee;
+      --wfh: #28a745;
+      --wfo: #fd7e14;
       --card-shadow: 0 8px 16px rgba(0,0,0,0.12);
       --transition: all 0.3s ease;
     }
@@ -205,6 +206,22 @@
       color: var(--success);
     }
     
+    .metric-card.wfh {
+      border-top-color: var(--wfh);
+    }
+    
+    .metric-card.wfh .metric-number {
+      color: var(--wfh);
+    }
+    
+    .metric-card.wfo {
+      border-top-color: var(--wfo);
+    }
+    
+    .metric-card.wfo .metric-number {
+      color: var(--wfo);
+    }
+    
     .chart-box {
       background: white;
       border-radius: 12px;
@@ -277,6 +294,7 @@
 </head>
 
 <body>
+
   <header class="py-4">
     <div class="container">
       <h1><i class="fas fa-chart-line me-2"></i> Excel Metrics Dashboard</h1>
@@ -312,7 +330,7 @@
 
     <section class="filter-section">
       <div class="row align-items-center">
-        <div class="col-md-4">
+        <div class="col-md-3">
           <div class="filter-item">
             <label class="filter-label" for="filterMonth"><i class="fas fa-calendar-alt me-1"></i> Filter by Month:</label>
             <select id="filterMonth" class="form-select w-100">
@@ -324,7 +342,7 @@
           </div>
         </div>
         
-        <div class="col-md-4">
+        <div class="col-md-3">
           <div class="filter-item">
             <label class="filter-label" for="filterTester"><i class="fas fa-user me-1"></i> Filter by Tester:</label>
             <select id="filterTester" class="form-select w-100">
@@ -333,17 +351,35 @@
           </div>
         </div>
         
-        <div class="col-md-4">
+        <div class="col-md-3">
           <div class="filter-item">
-            <label class="filter-label" for="groupBy"><i class="fas fa-layer-group me-1"></i> Group By:</label>
-            <select id="groupBy" class="form-select w-100">
-              <option value="none">None</option>
-              <option value="Project Name">Project</option>
-              <option value="Status">Status</option>
-              <option value="Tags">Tag</option>
+            <label class="filter-label" for="filterTestNo"><i class="fas fa-hashtag me-1"></i> Filter by Test No.:</label>
+            <select id="filterTestNo" class="form-select w-100">
+              <option value="all">All Test Numbers</option>
             </select>
           </div>
         </div>
+        
+        <div class="col-md-3">
+          <div class="filter-item">
+            <label class="filter-label" for="filterWorkLocation"><i class="fas fa-map-marker-alt me-1"></i> Work Location:</label>
+            <select id="filterWorkLocation" class="form-select w-100">
+              <option value="all">All Locations</option>
+              <option value="wfh">Work From Home</option>
+              <option value="wfo">Work From Office</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Work Location Info -->
+    <section class="mb-4">
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Work Schedule:</strong> 
+        Work From Home: Thursday & Saturday | 
+        Work From Office: Tuesday, Wednesday & Friday
       </div>
     </section>
 
@@ -358,22 +394,28 @@
       <h3 class="mb-3"><i class="fas fa-chart-bar me-2"></i> Data Visualizations</h3>
       
       <div class="row g-3 mb-4">
-        <div class="col-md-4">
+        <div class="col-md-3">
           <div class="chart-box">
             <div class="section-title"><i class="fas fa-tasks me-2"></i> Tests by Status</div>
             <canvas id="statusChart"></canvas>
           </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
           <div class="chart-box">
             <div class="section-title"><i class="fas fa-hourglass-half me-2"></i> Overdue vs On-Time</div>
             <canvas id="overdueChart"></canvas>
           </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
           <div class="chart-box">
             <div class="section-title"><i class="fas fa-tags me-2"></i> Tag Distribution</div>
             <canvas id="tagChart"></canvas>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="chart-box">
+            <div class="section-title"><i class="fas fa-map-marker-alt me-2"></i> Work Location</div>
+            <canvas id="workLocationChart"></canvas>
           </div>
         </div>
       </div>
@@ -393,6 +435,12 @@
         </div>
         <div class="col-12">
           <div class="chart-box">
+            <div class="section-title"><i class="fas fa-calendar-alt me-2"></i> Work Location by Day of Week</div>
+            <canvas id="workLocationDayChart"></canvas>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="chart-box">
             <div class="section-title"><i class="fas fa-project-diagram me-2"></i> Tests by Project</div>
             <canvas id="projectChart"></canvas>
           </div>
@@ -403,13 +451,19 @@
             <canvas id="testerChart"></canvas>
           </div>
         </div>
+        <div class="col-12">
+          <div class="chart-box">
+            <div class="section-title"><i class="fas fa-hashtag me-2"></i> Test Number Distribution</div>
+            <canvas id="testNoChart"></canvas>
+          </div>
+        </div>
       </div>
     </section>
   </main>
 
   <footer>
     <div class="container">
-      <p>&copy; 2025 QA Team. Created by Jerry May Campomayor</p>
+      <p>&copy; 2025 QA Team. Created by Jerry May Campomayor ft. Claude AI</p>
     </div>
   </footer>
 
@@ -417,17 +471,83 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <script>
+
+    // 🚀 WORK LOCATION OVERRIDES - Add this first!
+    const workLocationOverrides = [
+      // July 2025 - Company WFH week
+      { type: 'wfh', start: '2025-07-22', end: '2025-07-26', note: 'July WFH week' }
+      // Add more overrides here as needed
+      //Please add comma after adding new override
+    ];
+
+    //Fix for duration calculation issues
+    // Replace the existing parseCellDate function with this improved version:
     function parseCellDate(value) {
-      if (value instanceof Date && !isNaN(value)) return value;
+      if (!value) return null;
+      
+      // If it's already a valid Date object
+      if (value instanceof Date && !isNaN(value)) {
+        return value;
+      }
+      
+      // If it's a string
       if (typeof value === 'string') {
-        let d = new Date(value);
-        if (!isNaN(d)) return d;
+        value = value.trim();
+        if (!value) return null;
+        
+        // Try parsing as ISO string or common date formats
+        const date = new Date(value);
+        if (!isNaN(date)) {
+          return date;
+        }
       }
-      if (typeof value === 'number') {
-        return new Date((value - 25569) * 86400 * 1000);
+      
+      // If it's an Excel serial number (typically > 1900)
+      if (typeof value === 'number' && value > 1) {
+        // Excel date serial number conversion
+        // Excel uses 1900-01-01 as day 1, but has a leap year bug
+        // So we use 1899-12-30 as the epoch
+        const excelEpoch = new Date(1899, 11, 30);
+        const date = new Date(excelEpoch.getTime() + (value * 24 * 60 * 60 * 1000));
+        
+        // Validate the resulting date is reasonable (between 1900 and 2100)
+        if (date.getFullYear() >= 1900 && date.getFullYear() <= 2100) {
+          return date;
+        }
       }
+      
+      return null;
+    }
+
+function getWorkLocation(date) {
+      if (!date) return null;
+      
+      const dateStr = date.toISOString().split('T')[0];
+      
+      // Check for overrides first
+      for (let override of workLocationOverrides) {
+        if (dateStr >= override.start && dateStr <= override.end) {
+          return override.type;
+        }
+      }
+      
+      // Fall back to normal schedule
+      const dayOfWeek = date.getDay();
+      // Work From Home: Thursday (4) and Saturday (6)
+      if (dayOfWeek === 4 || dayOfWeek === 6) {
+        return 'wfh';
+      }
+      // Work From Office: Tuesday (2), Wednesday (3), Friday (5)
+      else if (dayOfWeek === 2 || dayOfWeek === 3 || dayOfWeek === 5) {
+        return 'wfo';
+      }
+      // Other days (Sunday, Monday) - not classified
       return null;
     }
 
@@ -437,7 +557,8 @@
     const sheetSelect = document.getElementById('sheetSelect');
     const filterMonth = document.getElementById('filterMonth');
     const filterTester = document.getElementById('filterTester');
-    const groupBy = document.getElementById('groupBy');
+    const filterTestNo = document.getElementById('filterTestNo');
+    const filterWorkLocation = document.getElementById('filterWorkLocation');
 
     const REQUIRED_COLUMNS = [
       "Month","Week No.","Project Name","Test no.","TW Link","TW Title",
@@ -448,11 +569,76 @@
     document.getElementById('excelFile').addEventListener('change', handleFile);
     filterMonth.addEventListener('change', applyFilters);
     filterTester.addEventListener('change', applyFilters);
-    groupBy.addEventListener('change', applyFilters);
+    filterTestNo.addEventListener('change', applyFilters);
+    filterWorkLocation.addEventListener('change', applyFilters);
+
+    // Add drag and drop functionality
+    const uploadContainer = document.getElementById('upload-container');
+    const fileUploadLabel = document.querySelector('.custom-file-upload');
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      uploadContainer.addEventListener(eventName, preventDefaults, false);
+      document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      uploadContainer.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      uploadContainer.addEventListener(eventName, unhighlight, false);
+    });
+
+    uploadContainer.addEventListener('drop', handleDrop, false);
+
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    function highlight(e) {
+      fileUploadLabel.style.borderColor = '#4361ee';
+      fileUploadLabel.style.backgroundColor = 'rgba(67, 97, 238, 0.1)';
+    }
+
+    function unhighlight(e) {
+      fileUploadLabel.style.borderColor = '#ddd';
+      fileUploadLabel.style.backgroundColor = 'transparent';
+    }
+
+    function handleDrop(e) {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      
+      if (files.length > 0) {
+        const file = files[0];
+        // Check if it's an Excel file
+        if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+          document.getElementById('excelFile').files = files;
+          handleFile({ target: { files: files } });
+        } else {
+          alertDiv.textContent = "Invalid file type. Please upload an Excel or CSV file (.xlsx, .xls, .csv).";
+          alertDiv.classList.add('show');
+        }
+      }
+    }
 
     function handleFile(e) {
       const file = e.target.files[0];
       if (!file) return;
+
+      // ✅ Strict validation for .xlsx, .xls, .csv only
+      const allowedExtensions = ['.xlsx', '.xls', '.csv'];
+      const fileName = file.name.toLowerCase();
+      const isValid = allowedExtensions.some(ext => fileName.endsWith(ext));
+
+      if (!isValid) {
+        alertDiv.textContent = "Invalid file type. Please upload an Excel or CSV file (.xlsx, .xls, .csv).";
+        alertDiv.classList.add('show');
+        e.target.value = ""; // Clear invalid file
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = evt => {
         const data = new Uint8Array(evt.target.result);
@@ -460,8 +646,10 @@
           workbookData = XLSX.read(data, { type: 'array' });
           populateSheetSelector();
           alertDiv.textContent = "";
+          alertDiv.classList.remove('show');
         } catch {
-          alertDiv.textContent = "Error reading Excel file.";
+          alertDiv.textContent = "Error reading file. Ensure it is a valid Excel or CSV file.";
+          alertDiv.classList.add('show');
         }
       };
       reader.readAsArrayBuffer(file);
@@ -479,26 +667,74 @@
       const ws = workbookData.Sheets[sheetName];
       rawData = XLSX.utils.sheet_to_json(ws, { defval: "" });
 
+      console.log("Raw data sample:", rawData[0]);
+      console.log("Available columns:", Object.keys(rawData[0] || {}));
+
       // populate Tester dropdown
-      const names = [...new Set(rawData.map(r => r.Name).filter(n => n))].sort();
-      filterTester.innerHTML = `<option value="all">All</option>` +
-        names.map(n => `<option>${n}</option>`).join('');
+      const names = [...new Set(rawData.map(r => r.Name).filter(n => n && n.toString().trim()))].sort();
+      filterTester.innerHTML = `<option value="all">All Testers</option>` +
+        names.map(n => `<option value="${n}">${n}</option>`).join('');
+
+      // populate Test No. dropdown
+      const testNos = [...new Set(rawData.map(r => {
+        const testNo = r['Test no.'];
+        return testNo && testNo.toString().trim();
+      }).filter(n => n))].sort((a, b) => {
+        const numA = parseFloat(a);
+        const numB = parseFloat(b);
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB;
+        }
+        return a.localeCompare(b);
+      });
+      
+      console.log("Test numbers found:", testNos);
+      
+      filterTestNo.innerHTML = `<option value="all">All Test Numbers</option>` +
+        testNos.map(n => `<option value="${n}">${n}</option>`).join('');
 
       applyFilters();
     }
 
     function applyFilters() {
       let data = rawData.slice();
+      
+      // Month filter
       const m = filterMonth.value.toLowerCase();
       if (m !== 'all') {
-        data = data.filter(r => r.Month && r.Month.toLowerCase() === m);
+        data = data.filter(r => r.Month && r.Month.toString().toLowerCase() === m);
       }
+      
+      // Tester filter
       const t = filterTester.value;
       if (t !== 'all') {
-        data = data.filter(r => r.Name === t);
+        data = data.filter(r => r.Name && r.Name.toString() === t);
+      }
+      
+      // Test No. filter
+      const testNo = filterTestNo.value;
+      if (testNo !== 'all') {
+        data = data.filter(r => {
+          const rowTestNo = r['Test no.'];
+          return rowTestNo && rowTestNo.toString().trim() === testNo;
+        });
       }
 
+      // Work Location filter
+      const workLoc = filterWorkLocation.value;
+      if (workLoc !== 'all') {
+        data = data.filter(r => {
+          const startDate = parseCellDate(r['Testing started on']);
+          const location = getWorkLocation(startDate);
+          return location === workLoc;
+        });
+      }
+
+      console.log("Filtered data count:", data.length);
+      console.log("Applied filters - Month:", m, "Tester:", t, "TestNo:", testNo, "WorkLocation:", workLoc);
+
       renderMetrics(data);
+      renderMissingDataSummary(data);
       renderCharts(data);
     }
 
@@ -508,120 +744,1706 @@
       if (chart) chart.destroy();
     }
 
-    function renderMetrics(data) {
-      const d = document.getElementById('metrics-cards');
-      d.innerHTML = '';
+//✅ ADD THESE FUNCTIONS (paste right before renderMetrics):
+// 🚀 DYNAMIC AVERAGE CALCULATOR - Add before renderMetrics function
+function calculateSmartAverages(data, workLocationOverrides) {
+  if (data.length === 0) return { expectedWfoCount: 0, expectedWfhCount: 0 };
+  
+  // Get date range of your data
+  const dates = data.map(r => parseCellDate(r['Testing started on'])).filter(d => d);
+  if (dates.length === 0) return { expectedWfoCount: 0, expectedWfhCount: 0 };
+  
+  const minDate = new Date(Math.min(...dates));
+  const maxDate = new Date(Math.max(...dates));
+  
+  console.log(`📅 Analyzing date range: ${minDate.toISOString().split('T')[0]} to ${maxDate.toISOString().split('T')[0]}`);
+  
+  // Count expected work days for each date in the range
+  let expectedWfoCount = 0;
+  let expectedWfhCount = 0;
+  
+  const currentDate = new Date(minDate);
+  while (currentDate <= maxDate) {
+    const expectedLocation = getWorkLocation(currentDate);
+    
+    if (expectedLocation === 'wfo') {
+      expectedWfoCount++;
+    } else if (expectedLocation === 'wfh') {
+      expectedWfhCount++;
+    }
+    
+    // Move to next day
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  console.log(`📊 Smart Average Calculation:`);
+  console.log(`   Total expected WFO days in range: ${expectedWfoCount}`);
+  console.log(`   Total expected WFH days in range: ${expectedWfhCount}`);
+  
+  return {
+    expectedWfoCount,
+    expectedWfhCount
+  };
+}
 
-      let overdue = 0, ontime = 0, inProg = 0, startedNC = 0, completedMonth = 0;
-      let totalDur = 0, cntDur = 0, minDur = Infinity, maxDur = 0;
+    //Fix for duration calculations in renderMetrics function
+    // Replace the duration calculation section in renderMetrics with this:
+
+function renderMetrics(data) {
+  const d = document.getElementById('metrics-cards');
+  d.innerHTML = '';
+
+  let overdue = 0, ontime = 0, inProg = 0, startedNC = 0, completedMonth = 0;
+  let totalDur = 0, cntDur = 0, minDur = Infinity, maxDur = 0;
+  let wfhCount = 0, wfoCount = 0;
+  let incompleteRows = 0; // 🔹 New counter for incomplete rows
+  const today = new Date();
+  const filterM = filterMonth.value;
+
+  const testers = {}, projs = {}, testNos = {};
+  const validDurations = [];
+
+  data.forEach(r => {
+    const dl = parseCellDate(r.Deadline);
+    const cl = r['Completed/Closed at'] ? parseCellDate(r['Completed/Closed at']) : null;
+    const st = parseCellDate(r['Testing started on']);
+
+    // 🔹 Count entries with missing metric fields
+    if (r.Name) {
+      const missingAny = !r['Project Name'] || !r['Test no.'] || !r['Status'] ||
+                         !r['Tags'] || !r['Testing started on'] || !r['Deadline'];
+      if (missingAny) incompleteRows++;
+    }
+
+    // Work location counting
+    // Work location counting with debugging
+    const workLoc = getWorkLocation(st);
+    if (st) { // Only count if we have a valid start date
+      if (workLoc === 'wfh') {
+        wfhCount++;
+      } else if (workLoc === 'wfo') {
+        wfoCount++;
+      }
+      
+      // Debug logging for override detection
+      const dateStr = st.toISOString().split('T')[0];
+      const hasOverride = workLocationOverrides.some(override => 
+        dateStr >= override.start && dateStr <= override.end
+      );
+      
+      if (hasOverride) {
+        console.log(`🔄 Override detected for ${dateStr}: ${workLoc} (normally would be ${getNormalWorkLocation(st)})`);
+      }
+    }
+
+    // Helper function to get normal schedule (without overrides)
+    function getNormalWorkLocation(date) {
+      if (!date) return null;
+      const dayOfWeek = date.getDay();
+      // Work From Home: Thursday (4) and Saturday (6)
+      if (dayOfWeek === 4 || dayOfWeek === 6) {
+        return 'wfh';
+      }
+      // Work From Office: Tuesday (2), Wednesday (3), Friday (5)
+      else if (dayOfWeek === 2 || dayOfWeek === 3 || dayOfWeek === 5) {
+        return 'wfo';
+      }
+      return null;
+    }
+
+    // overdue/on-time
+    if (dl) {
+      if (!cl && dl < today) overdue++;
+      else if (cl && cl > dl) overdue++;
+      else if (cl) ontime++;
+    }
+
+    // in progress & started not closed
+    if (st && !cl) {
+      inProg++;
+      startedNC++;
+    }
+
+    // completed this month
+    if (cl && (filterM === 'all' || cl.toLocaleString('default', { month: 'long' }) === filterM)) {
+      completedMonth++;
+    }
+
+    // durations
+    if (st && cl) {
+      const diffMs = cl.getTime() - st.getTime();
+      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      if (diffDays >= 1 && diffDays <= 365) {
+        validDurations.push(diffDays);
+        totalDur += diffDays;
+        cntDur++;
+        minDur = Math.min(minDur, diffDays);
+        maxDur = Math.max(maxDur, diffDays);
+      }
+    }
+
+    // aggregation
+    if (r.Name) testers[r.Name] = (testers[r.Name] || 0) + 1;
+    if (r['Project Name']) projs[r['Project Name']] = (projs[r['Project Name']] || 0) + 1;
+    if (r['Test no.']) testNos[r['Test no.']] = (testNos[r['Test no.']] || 0) + 1;
+  });
+
+  const avgDur = cntDur > 0 ? (totalDur / cntDur).toFixed(1) : 'N/A';
+  const minD = minDur === Infinity ? 'N/A' : minDur;
+  const maxD = maxDur === 0 ? 'N/A' : maxDur;
+  const medianDur = validDurations.length > 0 ?
+      (validDurations.sort((a, b) => a - b)[Math.floor(validDurations.length / 2)]) : 'N/A';
+
+    // 🚀 NEW METRICS CALCULATIONS
+
+    // 1. Overdue Reasons Analysis
+    const overdueReasons = {};
+    data.forEach(r => {
+      const dl = parseCellDate(r.Deadline);
+      const cl = r['Completed/Closed at'] ? parseCellDate(r['Completed/Closed at']) : null;
       const today = new Date();
-      const filterM = filterMonth.value;
+      
+      // Check if task is overdue
+      const isOverdue = (dl && !cl && dl < today) || (dl && cl && cl > dl);
+      
+      if (isOverdue && r['Remarks/Roadblocks/Notes']) {
+        const remarks = r['Remarks/Roadblocks/Notes'].toString().toLowerCase().trim();
+        
+        // Categorize common reasons
+        if (remarks.includes('bug') || remarks.includes('defect') || remarks.includes('issue') || remarks.includes('error')) {
+          overdueReasons['Technical Issues'] = (overdueReasons['Technical Issues'] || 0) + 1;
+        } else if (remarks.includes('requirement') || remarks.includes('scope') || remarks.includes('change') || remarks.includes('spec')) {
+          overdueReasons['Requirement Changes'] = (overdueReasons['Requirement Changes'] || 0) + 1;
+        } else if (remarks.includes('resource') || remarks.includes('unavailable') || remarks.includes('busy') || remarks.includes('leave')) {
+          overdueReasons['Resource Constraints'] = (overdueReasons['Resource Constraints'] || 0) + 1;
+        } else if (remarks.includes('dependency') || remarks.includes('blocked') || remarks.includes('waiting') || remarks.includes('depends')) {
+          overdueReasons['Dependencies'] = (overdueReasons['Dependencies'] || 0) + 1;
+        } else if (remarks.includes('complex') || remarks.includes('difficult') || remarks.includes('time') || remarks.includes('challenging')) {
+          overdueReasons['Complexity'] = (overdueReasons['Complexity'] || 0) + 1;
+        } else if (remarks.includes('delay') || remarks.includes('postpone') || remarks.includes('reschedule')) {
+          overdueReasons['Scheduling Issues'] = (overdueReasons['Scheduling Issues'] || 0) + 1;
+        } else {
+          overdueReasons['Other'] = (overdueReasons['Other'] || 0) + 1;
+        }
+      }
+    });
 
-      const testers = {}, projs = {};
+    const topOverdueReason = Object.entries(overdueReasons).sort((a, b) => b[1] - a[1])[0];
+    const overdueReasonDisplay = topOverdueReason ? `${topOverdueReason[0]} (${topOverdueReason[1]})` : 'No data available';
+
+
+    const uniqueTesters = Object.keys(testers).length;
+  const uniqueTestNos = Object.keys(testNos).length;
+  const topTester = Object.entries(testers).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+  const topProject = Object.entries(projs).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+  const topTestNo = Object.entries(testNos).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+
+  function addCard(title, value, extraClass = '') {
+    const c = document.createElement('div');
+    c.className = `metric-card ${extraClass}`;
+    if (title === 'Top Project') {
+      c.classList.add('top-project');
+    }
+    c.innerHTML = `<div class="section-title">${title}</div><div class="metric-number">${value}</div>`;
+    d.appendChild(c);
+  }
+
+  // 🚀 DYNAMIC AVERAGE CALCULATION
+  //    const { expectedWfoCount, expectedWfhCount } = calculateSmartAverages(data, workLocationOverrides);
+
+  // 🚀 DYNAMIC AVERAGE CALCULATION (manually override to divide by 2)
+        const expectedWfoCount = 3;
+        const expectedWfhCount = 2;
+  
+  // Calculate dynamic averages
+const wfhAvg = expectedWfhCount > 0 ? Math.round(wfhCount / expectedWfhCount) : 0;
+const wfoAvg = expectedWfoCount > 0 ? Math.round(wfoCount / expectedWfoCount) : 0;
+  
+  console.log(`📊 Final Averages:`);
+  console.log(`   WFH: ${wfhCount} / ${expectedWfhCount} = ${wfhAvg}`);
+  console.log(`   WFO: ${wfoCount} / ${expectedWfoCount} = ${wfoAvg}`);
+
+  addCard('Total Tests', data.length);
+  addCard('Work From Home', wfhCount, 'wfh');
+  addCard('WFH Average', wfhAvg, 'wfh');
+  addCard('Work From Office', wfoCount, 'wfo');
+  addCard('WFO Average', wfoAvg, 'wfo');
+  addCard('Overdue Tests', overdue, 'overdue');
+  addCard('On-Time Tests', ontime, 'success');
+  addCard('In Progress', inProg);
+  addCard('Started Not Closed', startedNC);
+  addCard(`Completed (${filterM})`, completedMonth, 'success');
+  addCard('Avg. Duration (days)', avgDur);
+  addCard('Median Duration (days)', medianDur);
+  addCard('Min Duration (days)', minD);
+  addCard('Max Duration (days)', maxD);
+  addCard('Unique Testers', uniqueTesters);
+  addCard('Unique Test Numbers', uniqueTestNos);
+  addCard('Top Tester', topTester);
+  addCard('Top Project', topProject);
+  addCard('Most Frequent Test No.', topTestNo);
+  addCard('Entries with Missing Metric Values', incompleteRows, 'overdue'); // 🔹 NEW CARD
+
+// 🚀 ENHANCED INDIVIDUAL CARDS
+function addEnhancedCard(title, value, subtitle, icon, extraClass = '') {
+  const c = document.createElement('div');
+  c.className = `metric-card ${extraClass}`;
+  c.innerHTML = `
+    <div class="section-title">
+      <i class="${icon} me-2"></i>${title}
+    </div>
+    <div class="metric-number">${value}</div>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.5rem; font-style: italic;">
+      ${subtitle}
+    </div>
+  `;
+  d.appendChild(c);
+}
+
+// Add enhanced cards
+addEnhancedCard(
+  'Top Overdue Reason', 
+  topOverdueReason ? topOverdueReason[0] : 'None',
+  topOverdueReason ? `${topOverdueReason[1]} cases` : 'No overdue issues',
+  'fas fa-exclamation-triangle',
+  'overdue'
+);
+
+
+// 🚀 COMPREHENSIVE CATEGORIZATION with 500+ keywords for maximum accuracy
+
+function categorizeOverdueReason(remarks) {
+  const lowerRemarks = remarks.toLowerCase().trim();
+  
+  // 🔧 TECHNICAL ISSUES (100+ keywords)
+  const technicalKeywords = [
+    // Basic technical terms
+    'bug', 'defect', 'issue', 'error', 'broken', 'not working', 'problem', 'fail', 'failure',
+    'crash', 'malfunction', 'glitch', 'exception', 'fault', 'incorrect', 'wrong', 'invalid',
+    'unexpected', 'technical', 'system', 'server', 'database', 'api', 'connection', 'timeout',
+    'performance', 'slow', 'lag', 'freeze', 'hang', 'stuck', 'unresponsive',
+    
+    // Code/Development issues
+    'syntax error', 'runtime error', 'null pointer', 'memory leak', 'buffer overflow',
+    'stack overflow', 'compilation error', 'build failed', 'deployment failed', 'merge conflict',
+    'code review', 'refactoring', 'debugging', 'hotfix', 'patch', 'rollback',
+    
+    // Application specific
+    'application error', 'app crash', 'ui issue', 'interface problem', 'layout broken',
+    'css issue', 'javascript error', 'loading issue', 'redirect problem', 'link broken',
+    'image not loading', 'video not playing', 'form not submitting', 'validation error',
+    
+    // System/Infrastructure
+    'server down', 'server error', 'network issue', 'connectivity problem', 'dns issue',
+    'ssl certificate', 'https error', 'port blocked', 'firewall issue', 'proxy problem',
+    'load balancer', 'cdn issue', 'cache problem', 'session expired', 'authentication failed',
+    
+    // Database issues
+    'database error', 'db connection', 'query failed', 'sql error', 'transaction failed',
+    'deadlock', 'table locked', 'constraint violation', 'foreign key', 'index missing',
+    'migration failed', 'backup failed', 'corruption', 'data loss', 'sync issue',
+    
+    // Mobile/Device specific
+    'device issue', 'mobile bug', 'android issue', 'ios issue', 'responsive issue',
+    'touch not working', 'gesture failed', 'orientation issue', 'camera not working',
+    'gps issue', 'notification problem', 'push notification', 'background sync',
+    
+    // Browser specific
+    'browser issue', 'chrome bug', 'firefox issue', 'safari problem', 'edge issue',
+    'ie compatibility', 'cross browser', 'polyfill needed', 'feature not supported',
+    'console error', 'deprecation warning'
+  ];
+  
+  // 📋 REQUIREMENT CHANGES (80+ keywords)
+  const requirementKeywords = [
+    // Basic requirement terms
+    'requirement', 'scope', 'change', 'spec', 'specification', 'modify', 'update', 'revision',
+    'new feature', 'additional', 'extra', 'different', 'alter', 'adjust', 'client request',
+    'business rule', 'functional', 'user story', 'acceptance criteria', 'design change',
+    
+    // Change management
+    'change request', 'cr', 'enhancement', 'improvement', 'modification', 'amendment',
+    'addition', 'removal', 'deletion', 'replacement', 'substitution', 'variation',
+    'alteration', 'refinement', 'optimization', 'upgrade', 'downgrade',
+    
+    // Stakeholder driven
+    'client feedback', 'user feedback', 'customer request', 'business need', 'market demand',
+    'competitive analysis', 'user research', 'usability testing', 'focus group',
+    'stakeholder review', 'executive decision', 'management directive', 'policy change',
+    
+    // Design changes
+    'ui change', 'ux improvement', 'wireframe update', 'mockup revision', 'prototype change',
+    'design system', 'brand guidelines', 'style guide', 'color scheme', 'typography change',
+    'layout modification', 'navigation update', 'workflow change', 'user flow',
+    
+    // Functional changes
+    'business logic', 'algorithm change', 'calculation method', 'formula update',
+    'validation rule', 'processing logic', 'data flow', 'integration requirement',
+    'api specification', 'interface change', 'protocol update', 'format change',
+    
+    // Compliance/Regulatory
+    'compliance requirement', 'regulatory change', 'legal requirement', 'privacy policy',
+    'gdpr compliance', 'accessibility requirement', 'security requirement', 'audit requirement'
+  ];
+  
+  // 👥 RESOURCE CONSTRAINTS (90+ keywords)
+  const resourceKeywords = [
+    // People availability
+    'resource', 'unavailable', 'busy', 'leave', 'absent', 'vacation', 'sick', 'workload',
+    'capacity', 'bandwidth', 'overloaded', 'priority', 'urgent', 'other tasks', 'meeting',
+    'training', 'support', 'help needed', 'manpower', 'staff', 'team member',
+    
+    // Workload management
+    'high priority task', 'emergency', 'production issue', 'critical bug', 'hotfix needed',
+    'client escalation', 'management priority', 'deadline conflict', 'resource conflict',
+    'double booked', 'overlapping tasks', 'context switching', 'multitasking',
+    
+    // Team structure
+    'team restructure', 'role change', 'responsibility shift', 'new hire', 'onboarding',
+    'knowledge transfer', 'handover', 'documentation', 'training materials',
+    'subject matter expert', 'sme unavailable', 'key person leave',
+    
+    // Skills/Expertise
+    'skill gap', 'learning curve', 'expertise needed', 'specialist required',
+    'consultant needed', 'external help', 'vendor support', 'contractor needed',
+    'certification required', 'upskilling needed', 'knowledge sharing',
+    
+    // Time management
+    'time constraint', 'insufficient time', 'tight deadline', 'rushed', 'crunch time',
+    'overtime', 'weekend work', 'after hours', 'extended hours', 'shift work',
+    'time zone difference', 'working hours', 'availability window',
+    
+    // Budget/Financial
+    'budget constraint', 'cost issue', 'funding problem', 'approval needed',
+    'purchase order', 'procurement delay', 'license cost', 'subscription expired',
+    'financial approval', 'budget allocation', 'cost optimization'
+  ];
+  
+  // 🔒 DEPENDENCIES/BLOCKERS (100+ keywords)
+  const dependencyKeywords = [
+    // Basic dependency terms
+    'dependency', 'dependent', 'blocked', 'waiting', 'depends', 'pending', 'hold', 'stuck',
+    'external', 'third party', 'vendor', 'approval', 'sign off', 'review', 'feedback',
+    'prerequisite', 'blocker', 'impediment', 'bottleneck', 'upstream', 'downstream',
+    
+    // Approval processes
+    'waiting for approval', 'pending approval', 'management approval', 'client approval',
+    'legal approval', 'compliance approval', 'security approval', 'architecture review',
+    'code review', 'design review', 'business review', 'stakeholder sign off',
+    
+    // External dependencies
+    'third party service', 'external api', 'vendor delivery', 'partner integration',
+    'client system', 'legacy system', 'mainframe', 'external database',
+    'web service', 'microservice', 'service dependency', 'api dependency',
+    
+    // Team dependencies
+    'other team', 'cross team', 'backend team', 'frontend team', 'devops team',
+    'infrastructure team', 'security team', 'dba team', 'network team',
+    'waiting for deployment', 'waiting for release', 'waiting for build',
+    
+    // Process dependencies
+    'process blocked', 'workflow stuck', 'pipeline issue', 'ci/cd blocked',
+    'deployment blocked', 'release blocked', 'testing blocked', 'qa blocked',
+    'staging environment', 'production deployment', 'maintenance window',
+    
+    // Data dependencies
+    'data availability', 'data migration', 'data sync', 'database update',
+    'test data', 'production data', 'data export', 'data import',
+    'data validation', 'data cleansing', 'data transformation',
+    
+    // Infrastructure dependencies
+    'server setup', 'environment setup', 'infrastructure ready', 'network configuration',
+    'firewall rules', 'dns configuration', 'ssl certificate', 'load balancer setup'
+  ];
+  
+  // 🧠 COMPLEXITY ISSUES (70+ keywords)
+  const complexityKeywords = [
+    // Basic complexity terms
+    'complex', 'complicated', 'difficult', 'challenging', 'hard', 'time consuming',
+    'extensive', 'large', 'multiple', 'integration', 'research', 'analysis', 'investigation',
+    'unclear', 'ambiguous', 'confusing', 'learning curve', 'new technology', 'unfamiliar',
+    
+    // Technical complexity
+    'architecture complexity', 'system complexity', 'integration complexity',
+    'algorithm complexity', 'data complexity', 'business logic complexity',
+    'cross platform', 'multi tenant', 'scalability', 'performance optimization',
+    'memory optimization', 'network optimization', 'database optimization',
+    
+    // Integration complexity
+    'multiple systems', 'legacy integration', 'api integration', 'data migration',
+    'system migration', 'platform migration', 'technology stack', 'microservices',
+    'distributed system', 'event driven', 'asynchronous processing',
+    
+    // Domain complexity
+    'business domain', 'domain expertise', 'industry knowledge', 'regulatory compliance',
+    'financial calculations', 'tax calculations', 'mathematical model',
+    'statistical analysis', 'machine learning', 'artificial intelligence',
+    
+    // Scale complexity
+    'high volume', 'big data', 'real time processing', 'concurrent users',
+    'load testing', 'stress testing', 'performance testing', 'scalability testing',
+    'capacity planning', 'resource planning'
+  ];
+  
+  // 📅 SCHEDULING ISSUES (60+ keywords)
+  const schedulingKeywords = [
+    // Basic scheduling terms
+    'delay', 'postpone', 'reschedule', 'timeline', 'deadline', 'schedule', 'timing',
+    'calendar', 'availability', 'conflict', 'overlap', 'planning', 'estimation',
+    'late start', 'behind schedule', 'time constraint', 'rush', 'extended',
+    
+    // Timeline management
+    'milestone delay', 'phase delay', 'release delay', 'deployment delay',
+    'testing delay', 'development delay', 'timeline adjustment', 'schedule conflict',
+    'resource scheduling', 'capacity planning', 'sprint planning', 'iteration planning',
+    
+    // Project management
+    'project delay', 'deliverable delay', 'milestone missed', 'deadline extension',
+    'timeline compression', 'fast track', 'critical path', 'schedule optimization',
+    'resource leveling', 'timeline buffer', 'contingency planning',
+    
+    // Coordination issues
+    'coordination delay', 'synchronization issue', 'parallel tasks', 'sequential tasks',
+    'task dependency', 'schedule dependency', 'cross team coordination',
+    'stakeholder availability', 'meeting scheduling', 'time zone coordination'
+  ];
+  
+  // 💬 COMMUNICATION ISSUES (80+ keywords)
+  const communicationKeywords = [
+    // Basic communication terms
+    'communication', 'clarification', 'unclear', 'confusion', 'misunderstanding',
+    'no response', 'waiting for info', 'information', 'contact', 'discuss', 'meeting',
+    'confirmation', 'question', 'doubt', 'assumption', 'interpretation',
+    
+    // Information flow
+    'information gap', 'knowledge gap', 'documentation missing', 'specification unclear',
+    'requirements unclear', 'instructions unclear', 'process unclear',
+    'workflow unclear', 'responsibility unclear', 'ownership unclear',
+    
+    // Stakeholder communication
+    'stakeholder feedback', 'client communication', 'user feedback', 'business feedback',
+    'management communication', 'team communication', 'cross team communication',
+    'vendor communication', 'partner communication', 'external communication',
+    
+    // Documentation issues
+    'documentation outdated', 'documentation missing', 'documentation incomplete',
+    'specification missing', 'requirements document', 'technical documentation',
+    'user manual', 'installation guide', 'configuration guide', 'api documentation',
+    
+    // Meeting/Discussion needs
+    'need discussion', 'need meeting', 'need clarification', 'need confirmation',
+    'need approval', 'need review', 'need feedback', 'need input',
+    'brainstorming needed', 'workshop needed', 'training session'
+  ];
+  
+  // 🏗️ ENVIRONMENT/SETUP ISSUES (90+ keywords)
+  const environmentKeywords = [
+    // Basic environment terms
+    'environment', 'setup', 'configuration', 'deployment', 'infrastructure', 'access',
+    'permission', 'credential', 'login', 'network', 'vpn', 'firewall', 'security',
+    'tool', 'software', 'hardware', 'machine', 'device', 'browser', 'platform',
+    
+    // Environment types
+    'dev environment', 'test environment', 'staging environment', 'production environment',
+    'qa environment', 'integration environment', 'demo environment', 'sandbox environment',
+    'local environment', 'cloud environment', 'docker environment', 'virtual environment',
+    
+    // Setup/Configuration
+    'environment setup', 'system configuration', 'tool configuration', 'database setup',
+    'server configuration', 'network setup', 'security configuration', 'user setup',
+    'account creation', 'profile setup', 'permission setup', 'role assignment',
+    
+    // Access issues
+    'access denied', 'permission denied', 'authentication failed', 'authorization failed',
+    'login issue', 'password reset', 'account locked', 'session timeout',
+    'vpn connection', 'network access', 'firewall blocking', 'port blocked',
+    
+    // Tool/Software issues
+    'tool installation', 'software installation', 'version compatibility', 'license issue',
+    'plugin issue', 'extension issue', 'driver issue', 'dependency missing',
+    'library missing', 'framework issue', 'ide issue', 'compiler issue',
+    
+    // Infrastructure issues
+    'server issue', 'hardware failure', 'disk space', 'memory issue', 'cpu issue',
+    'network connectivity', 'bandwidth issue', 'latency issue', 'dns issue',
+    'load balancer', 'proxy server', 'cache server', 'database server'
+  ];
+  
+  // 🧪 TESTING/QA SPECIFIC ISSUES (100+ keywords)
+  const testingKeywords = [
+    // Basic testing terms
+    'test data', 'test environment', 'test case', 'scenario', 'automation', 'script',
+    'execution', 'regression', 'validation', 'verification', 'coverage', 'matrix',
+    'browser compatibility', 'device testing', 'load testing', 'performance testing',
+    
+    // Test types
+    'unit testing', 'integration testing', 'system testing', 'acceptance testing',
+    'smoke testing', 'sanity testing', 'exploratory testing', 'usability testing',
+    'security testing', 'penetration testing', 'accessibility testing', 'api testing',
+    
+    // Test execution issues
+    'test execution failed', 'test script failed', 'automation failed', 'test data issue',
+    'test environment issue', 'test setup failed', 'test teardown failed',
+    'flaky test', 'intermittent failure', 'test timeout', 'test blocked',
+    
+    // Test automation
+    'automation framework', 'test framework', 'selenium issue', 'webdriver issue',
+    'test runner issue', 'ci/cd testing', 'pipeline testing', 'automated regression',
+    'test maintenance', 'script update', 'locator issue', 'element not found',
+    
+    // Test data management
+    'test data creation', 'test data cleanup', 'test data privacy', 'synthetic data',
+    'data masking', 'data anonymization', 'test data refresh', 'data generation',
+    'database seeding', 'fixture creation', 'mock data', 'stub data',
+    
+    // Test reporting
+    'test results', 'test report', 'defect report', 'bug report', 'test metrics',
+    'coverage report', 'test analysis', 'failure analysis', 'root cause analysis',
+    'test documentation', 'test plan', 'test strategy', 'test schedule',
+    
+    // Cross-platform testing
+    'browser testing', 'mobile testing', 'responsive testing', 'cross browser',
+    'multi device', 'platform compatibility', 'version compatibility',
+    'operating system', 'android testing', 'ios testing', 'web testing'
+  ];
+  
+  // 🔄 PROCESS/WORKFLOW ISSUES (60+ keywords)
+  const processKeywords = [
+    // Basic process terms
+    'process issue', 'workflow problem', 'procedure unclear', 'policy change',
+    'governance issue', 'compliance process', 'approval process', 'review process',
+    'deployment process', 'release process', 'change management', 'incident management',
+    
+    // Methodology issues
+    'agile process', 'scrum issue', 'sprint issue', 'kanban issue', 'waterfall process',
+    'devops process', 'ci/cd process', 'deployment pipeline', 'build process',
+    'testing process', 'qa process', 'code review process', 'merge process',
+    
+    // Quality processes
+    'quality assurance', 'quality control', 'quality gate', 'definition of done',
+    'acceptance criteria', 'exit criteria', 'quality metrics', 'quality standards',
+    'best practices', 'coding standards', 'testing standards', 'documentation standards',
+    
+    // Operational processes
+    'operational procedure', 'maintenance process', 'backup process', 'recovery process',
+    'monitoring process', 'alerting process', 'escalation process', 'support process'
+  ];
+  
+  // Check each category (order matters - most specific first)
+  if (testingKeywords.some(keyword => lowerRemarks.includes(keyword))) {
+    return 'Testing/QA Issues';
+  }
+  if (technicalKeywords.some(keyword => lowerRemarks.includes(keyword))) {
+    return 'Technical Issues';
+  }
+  if (environmentKeywords.some(keyword => lowerRemarks.includes(keyword))) {
+    return 'Environment/Setup Issues';
+  }
+  if (dependencyKeywords.some(keyword => lowerRemarks.includes(keyword))) {
+    return 'Dependencies/Blockers';
+  }
+  if (requirementKeywords.some(keyword => lowerRemarks.includes(keyword))) {
+    return 'Requirement Changes';
+  }
+  if (resourceKeywords.some(keyword => lowerRemarks.includes(keyword))) {
+    return 'Resource Constraints';
+  }
+  if (communicationKeywords.some(keyword => lowerRemarks.includes(keyword))) {
+    return 'Communication Issues';
+  }
+  if (complexityKeywords.some(keyword => lowerRemarks.includes(keyword))) {
+    return 'Complexity Issues';
+  }
+  if (schedulingKeywords.some(keyword => lowerRemarks.includes(keyword))) {
+    return 'Scheduling Issues';
+  }
+  if (processKeywords.some(keyword => lowerRemarks.includes(keyword))) {
+    return 'Process/Workflow Issues';
+  }
+  
+  // Enhanced debug logging for uncategorized items
+  console.log('🔍 UNCATEGORIZED REMARK:', lowerRemarks);
+  console.log('📝 Consider adding keywords from this remark to improve categorization');
+  
+  return 'Other';
+}
+
+
+
+// 🚀 DETAILED ANALYSIS SECTIONS (Overdue Reasons)
+// 🚀 ENHANCED OVERDUE ANALYSIS - COMPLETE REPLACEMENT
+function createDetailedAnalysis() {
+  const metricsSection = document.getElementById('metrics-section');
+  if (!metricsSection) return;
+
+  // Remove any existing analysis box
+  const existingBox = document.getElementById('overdue-analysis-box');
+  if (existingBox) existingBox.remove();
+
+  // Get detailed overdue tasks - EXCLUDE BLANK REMARKS
+  const overdueDetails = [];
+  const overdueWithBlankRemarks = [];
+  
+  data.forEach(r => {
+    const dl = parseCellDate(r.Deadline);
+    const cl = r['Completed/Closed at'] ? parseCellDate(r['Completed/Closed at']) : null;
+    const today = new Date();
+    
+    const isOverdue = (dl && !cl && dl < today) || (dl && cl && cl > dl);
+    
+    if (isOverdue) {
+      const remarks = r['Remarks/Roadblocks/Notes'];
+      const hasRemarks = remarks && remarks.toString().trim() && remarks.toString().trim() !== '';
+      
+      const taskData = {
+        projectName: r['Project Name'] || 'N/A',
+        twTitle: r['TW Title'] || 'N/A',
+        twLink: r['TW Link'] || null,
+        overdueReason: hasRemarks ? remarks.toString().trim() : 'No reason provided',
+        deadline: dl ? dl.toLocaleDateString() : 'N/A',
+        testNo: r['Test no.'] || 'N/A',
+        testerName: r['Name'] || 'N/A'
+      };
+      
+      if (hasRemarks) {
+        overdueDetails.push(taskData);
+      } else {
+        overdueWithBlankRemarks.push(taskData);
+      }
+    }
+  });
+
+  // Categorize overdue reasons
+  const overdueReasons = {};
+  const reasonToTasks = {};
+  
+ overdueDetails.forEach(task => {
+  const category = categorizeOverdueReason(task.overdueReason);
+  
+  overdueReasons[category] = (overdueReasons[category] || 0) + 1;
+  
+  if (!reasonToTasks[category]) {
+    reasonToTasks[category] = [];
+  }
+  reasonToTasks[category].push(task);
+});
+
+  // Create main container
+  const overdueContainer = document.createElement('div');
+  overdueContainer.id = 'overdue-analysis-box';
+  overdueContainer.style.background = 'white';
+  overdueContainer.style.padding = '1.5rem';
+  overdueContainer.style.borderRadius = '12px';
+  overdueContainer.style.boxShadow = 'var(--card-shadow)';
+  overdueContainer.style.marginTop = '1.5rem';
+
+  const overdueHeader = document.createElement('div');
+  overdueHeader.innerHTML = `<strong style="color: #f72585;"><i class="fas fa-exclamation-triangle me-2"></i>Overdue Tasks Analysis</strong>`;
+
+  // Summary with exclusion note
+  const overdueSummary = document.createElement('div');
+  const totalOverdueTasks = overdueDetails.length;
+  const excludedCount = overdueWithBlankRemarks.length;
+  
+  let summaryHTML = `<p class="mb-2" style="color: #666;">📊 <strong>${totalOverdueTasks}</strong> overdue task${totalOverdueTasks !== 1 ? 's' : ''} with documented reasons found.</p>`;
+  
+  if (excludedCount > 0) {
+    summaryHTML += `<p class="mb-3" style="color: #f59e0b; font-size: 0.9rem; background: #fef3c7; padding: 0.5rem 0.75rem; border-radius: 6px; border-left: 3px solid #f59e0b;">
+      <i class="fas fa-info-circle me-1"></i>
+      <strong>Note:</strong> ${excludedCount} overdue task${excludedCount !== 1 ? 's' : ''} with blank remarks ${excludedCount !== 1 ? 'have' : 'has'} been excluded from this analysis.
+    </p>`;
+  }
+  
+  overdueSummary.innerHTML = summaryHTML;
+
+  // Create clickable reasons summary
+  const reasonsSummaryContainer = document.createElement('div');
+  reasonsSummaryContainer.style.marginTop = '1rem';
+  reasonsSummaryContainer.style.marginBottom = '1.5rem';
+
+  if (Object.keys(overdueReasons).length > 0) {
+    const reasonsTitle = document.createElement('h5');
+    reasonsTitle.innerHTML = `<i class="fas fa-chart-pie me-2"></i>Click on a reason to see detailed tasks:`;
+    reasonsTitle.style.color = '#495057';
+    reasonsTitle.style.marginBottom = '1rem';
+    
+    const reasonsGrid = document.createElement('div');
+    reasonsGrid.style.display = 'grid';
+    reasonsGrid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
+    reasonsGrid.style.gap = '0.75rem';
+    
+    Object.entries(overdueReasons).sort((a, b) => b[1] - a[1]).forEach(([reason, count]) => {
+      const reasonCard = document.createElement('div');
+      reasonCard.style.background = 'linear-gradient(135deg, #4361ee, #3f37c9)';
+      reasonCard.style.color = 'white';
+      reasonCard.style.padding = '1rem';
+      reasonCard.style.borderRadius = '8px';
+      reasonCard.style.cursor = 'pointer';
+      reasonCard.style.transition = 'all 0.3s ease';
+      reasonCard.style.textAlign = 'center';
+      reasonCard.style.boxShadow = '0 2px 4px rgba(67, 97, 238, 0.3)';
+      
+      const percentage = totalOverdueTasks > 0 ? ((count / totalOverdueTasks) * 100).toFixed(1) : 0;
+      
+      reasonCard.innerHTML = `
+        <div style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">${reason}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">${count}</div>
+        <div style="font-size: 0.8rem; opacity: 0.8;">${percentage}% of overdue tasks</div>
+      `;
+      
+      // Hover effects
+      reasonCard.addEventListener('mouseenter', () => {
+        reasonCard.style.transform = 'translateY(-3px) scale(1.02)';
+        reasonCard.style.boxShadow = '0 6px 12px rgba(67, 97, 238, 0.4)';
+      });
+      
+      reasonCard.addEventListener('mouseleave', () => {
+        reasonCard.style.transform = 'translateY(0) scale(1)';
+        reasonCard.style.boxShadow = '0 2px 4px rgba(67, 97, 238, 0.3)';
+      });
+      
+      // Click handler to show/hide detailed cards
+      reasonCard.addEventListener('click', () => {
+        const existingCards = document.getElementById(`cards-${reason.replace(/\s+/g, '-')}`);
+        if (existingCards) {
+          // Hide cards
+          existingCards.remove();
+          reasonCard.style.background = 'linear-gradient(135deg, #4361ee, #3f37c9)';
+        } else {
+          // Hide any other open cards first
+          document.querySelectorAll('[id^="cards-"]').forEach(card => card.remove());
+          document.querySelectorAll('.reason-card-active').forEach(card => {
+            card.style.background = 'linear-gradient(135deg, #4361ee, #3f37c9)';
+            card.classList.remove('reason-card-active');
+          });
+          
+          // Show cards for this reason
+          showTaskCards(reason, reasonToTasks[reason], reasonCard);
+          reasonCard.style.background = 'linear-gradient(135deg, #f72585, #e63946)';
+          reasonCard.classList.add('reason-card-active');
+        }
+      });
+      
+      reasonsGrid.appendChild(reasonCard);
+    });
+    
+    reasonsSummaryContainer.appendChild(reasonsTitle);
+    reasonsSummaryContainer.appendChild(reasonsGrid);
+  } else {
+    // No overdue tasks with reasons
+    const noOverdueMsg = document.createElement('div');
+    noOverdueMsg.style.textAlign = 'center';
+    noOverdueMsg.style.padding = '3rem 2rem';
+    noOverdueMsg.style.color = '#28a745';
+    noOverdueMsg.style.background = 'linear-gradient(135deg, #d4edda, #c3e6cb)';
+    noOverdueMsg.style.border = '1px solid #c3e6cb';
+    noOverdueMsg.style.borderRadius = '12px';
+    noOverdueMsg.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+    noOverdueMsg.innerHTML = `
+      <i class="fas fa-check-circle" style="font-size: 3rem; margin-bottom: 1rem; color: #28a745;"></i><br>
+      <strong style="font-size: 1.2rem;">Excellent! No overdue tasks with documented reasons found.</strong>
+      <br>
+      <span style="font-size: 0.95rem; opacity: 0.8; margin-top: 0.5rem; display: block;">Your team is staying on track! 🎉</span>
+    `;
+    reasonsSummaryContainer.appendChild(noOverdueMsg);
+  }
+
+  // Function to show task cards for a specific reason
+  function showTaskCards(reason, tasks, reasonCard) {
+    const cardsContainer = document.createElement('div');
+    cardsContainer.id = `cards-${reason.replace(/\s+/g, '-')}`;
+    cardsContainer.style.display = 'grid';
+    cardsContainer.style.gridTemplateColumns = 'repeat(auto-fill, minmax(320px, 1fr))';
+    cardsContainer.style.gap = '1rem';
+    cardsContainer.style.marginTop = '1rem';
+    cardsContainer.style.padding = '1rem';
+    cardsContainer.style.background = '#f8f9fa';
+    cardsContainer.style.borderRadius = '8px';
+    cardsContainer.style.border = '2px solid #e9ecef';
+    
+    // Add a header for this reason category
+    const categoryHeader = document.createElement('div');
+    categoryHeader.style.gridColumn = '1 / -1';
+    categoryHeader.style.textAlign = 'center';
+    categoryHeader.style.marginBottom = '0.5rem';
+    categoryHeader.innerHTML = `
+      <h6 style="color: #495057; margin: 0; font-weight: 600;">
+        <i class="fas fa-list-ul me-2"></i>Tasks with "${reason}" issues:
+        <button onclick="this.parentElement.parentElement.parentElement.remove(); document.querySelectorAll('.reason-card-active').forEach(c => { c.style.background = 'linear-gradient(135deg, #4361ee, #3f37c9)'; c.classList.remove('reason-card-active'); });" 
+                style="background: #dc3545; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.7rem; margin-left: 1rem; cursor: pointer;">
+          <i class="fas fa-times"></i> Close
+        </button>
+      </h6>
+    `;
+    cardsContainer.appendChild(categoryHeader);
+    
+    tasks.forEach(task => {
+      const card = document.createElement('div');
+      card.style.background = 'white';
+      card.style.border = '1px solid #dee2e6';
+      card.style.borderLeft = '4px solid #f72585';
+      card.style.borderRadius = '6px';
+      card.style.padding = '1rem';
+      card.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+      card.style.transition = 'transform 0.2s ease';
+      
+      card.addEventListener('mouseenter', () => {
+        card.style.transform = 'translateY(-2px)';
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'translateY(0)';
+      });
+
+      let twTitleHTML = '';
+      if (task.twLink && task.twLink.trim() && task.twLink !== 'N/A' && task.twLink.startsWith('http')) {
+        twTitleHTML = `
+          <div style="margin-bottom: 0.5rem;">
+            <strong style="color: #495057; font-size: 0.8rem;">TW Title:</strong><br>
+            <a href="${task.twLink}" target="_blank" rel="noopener noreferrer" 
+               style="color: #4361ee; text-decoration: none; font-weight: 500; font-size: 0.85rem;">
+              ${task.twTitle} <i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i>
+            </a>
+          </div>
+        `;
+      } else {
+        twTitleHTML = `
+          <div style="margin-bottom: 0.5rem;">
+            <strong style="color: #495057; font-size: 0.8rem;">TW Title:</strong><br>
+            <span style="color: #6c757d; font-size: 0.85rem;">${task.twTitle}</span>
+          </div>
+        `;
+      }
+
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <span style="background: #f72585; color: white; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.65rem; font-weight: 600;">
+            OVERDUE
+          </span>
+          <div style="text-align: right;">
+            <small style="color: #6c757d; font-weight: 500;">Test ${task.testNo}</small><br>
+            <small style="color: #6c757d; font-size: 0.7rem;">${task.testerName}</small>
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 0.5rem;">
+          <strong style="color: #495057; font-size: 0.8rem;">Project:</strong><br>
+          <span style="color: #212529; font-weight: 500; font-size: 0.9rem;">${task.projectName}</span>
+        </div>
+        
+        ${twTitleHTML}
+        
+        <div style="margin-bottom: 0.5rem;">
+          <strong style="color: #495057; font-size: 0.8rem;">Deadline:</strong>
+          <span style="color: #dc3545; font-weight: 500; font-size: 0.8rem; margin-left: 0.5rem;">${task.deadline}</span>
+        </div>
+        
+        <div>
+          <strong style="color: #495057; font-size: 0.8rem;">Reason:</strong><br>
+          <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 0.5rem; margin-top: 0.25rem;">
+            <span style="color: #495057; font-size: 0.8rem; line-height: 1.3; font-style: italic;">${task.overdueReason}</span>
+          </div>
+        </div>
+      `;
+      
+      cardsContainer.appendChild(card);
+    });
+    
+    // Insert cards container after the reasons grid
+    reasonsSummaryContainer.appendChild(cardsContainer);
+  }
+
+  overdueContainer.appendChild(overdueHeader);
+  overdueContainer.appendChild(overdueSummary);
+  overdueContainer.appendChild(reasonsSummaryContainer);
+
+  metricsSection.appendChild(overdueContainer);
+}
+
+// Call the detailed analysis function
+createDetailedAnalysis();
+
+}
+
+function renderMissingDataSummary(data) {
+  const oldSummary = document.getElementById('missing-summary-box');
+  if (oldSummary) oldSummary.remove();
+
+  const metricFields = ['Project Name', 'Test no.', 'Status', 'Tags', 'Testing started on', 'Deadline'];
+  const fieldLabels = {
+    'Project Name': 'Project Name',
+    'Test no.': 'Test No.',
+    'Status': 'Status',
+    'Tags': 'Tags',
+    'Testing started on': 'Started On',
+    'Deadline': 'Deadline'
+  };
+
+  const perTester = {};
+
+  data.forEach(r => {
+    const tester = r.Name?.trim();
+    if (!tester) return;
+
+    if (!perTester[tester]) {
+      perTester[tester] = {
+        blankFields: 0,
+        totalFields: 0,
+        missingCounts: {}
+      };
+    }
+
+    const entry = perTester[tester];
+
+    metricFields.forEach(field => {
+      entry.totalFields++;
+      const isBlank = !r[field] || r[field].toString().trim() === '';
+      if (isBlank) {
+        entry.blankFields++;
+        entry.missingCounts[field] = (entry.missingCounts[field] || 0) + 1;
+      }
+    });
+  });
+
+  const container = document.createElement('div');
+  container.id = 'missing-summary-box';
+  container.style.background = 'white';
+  container.style.padding = '1.5rem';
+  container.style.borderRadius = '12px';
+  container.style.boxShadow = 'var(--card-shadow)';
+  container.style.marginTop = '1.5rem';
+
+  let totalMissing = 0;
+
+  const header = document.createElement('div');
+  header.innerHTML = `<strong style="color: #f59e0b;"><i class="fas fa-exclamation-triangle me-2"></i>Data Quality Issues</strong>`;
+
+  const summary = document.createElement('div');
+  summary.innerHTML = `<p class="mb-2" style="color: #666;">⚠️ <strong>${Object.values(perTester).reduce((a, b) => a + b.blankFields, 0)}</strong> blank fields detected across all testers.</p>`;
+
+  const table = document.createElement('table');
+  table.className = 'table table-bordered table-sm mt-3';
+  table.style.textAlign = 'center';
+  table.style.verticalAlign = 'middle';
+
+  const thead = document.createElement('thead');
+  thead.innerHTML = `
+    <tr class="table-dark">
+      <th>Tester</th>
+      <th>Blank Fields</th>
+      <th>Total Fields</th>
+      <th>Blank Rate</th>
+      <th>Missing Fields</th>
+      <th>Most Common Missing</th>
+    </tr>
+  `;
+
+  const tbody = document.createElement('tbody');
+  const chartLabels = [], chartData = [];
+
+  Object.entries(perTester).sort((a, b) => b[1].blankFields - a[1].blankFields).forEach(([tester, stat]) => {
+    const rate = ((stat.blankFields / stat.totalFields) * 100).toFixed(1);
+    totalMissing += stat.blankFields;
+
+    chartLabels.push(tester);
+    chartData.push(rate);
+
+    const mostMissing = Object.entries(stat.missingCounts)
+      .sort((a, b) => b[1] - a[1])[0];
+
+    const mostMissingLabel = mostMissing
+      ? `${fieldLabels[mostMissing[0]]} (${mostMissing[1]}x)`
+      : '-';
+
+    const isCritical = mostMissing?.[0] === 'Deadline';
+    const mostMissingStyled = isCritical
+      ? `<span style="color:#e63946;font-weight:bold;">${mostMissingLabel}</span>`
+      : mostMissingLabel;
+
+    const rateColor =
+      rate >= 20 ? '#dc3545' :
+      rate >= 10 ? '#fd7e14' :
+      '#198754';
+
+    // Tooltip / warning icon
+    const warningIcon = rate >= 10
+      ? `<i class="fas fa-exclamation-circle text-warning ms-1" title="High blank rate"></i>`
+      : '';
+
+    // Detailed missing counts
+    const allMissing = Object.entries(stat.missingCounts)
+      .map(([field, count]) => `${fieldLabels[field]} (${count})`)
+      .join(', ') || '-';
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><strong>${tester}</strong> ${warningIcon}</td>
+      <td>${stat.blankFields}</td>
+      <td>${stat.totalFields}</td>
+      <td style="color: ${rateColor}; font-weight: 600;">${rate}%</td>
+      <td style="font-size: 0.85rem;">${allMissing}</td>
+      <td>${mostMissingStyled}</td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  table.appendChild(thead);
+  table.appendChild(tbody);
+
+  const canvas = document.createElement('canvas');
+  canvas.id = 'blankRateChart';
+  canvas.style.maxHeight = '400px';
+  canvas.style.marginTop = '2rem';
+
+  container.appendChild(header);
+  container.appendChild(summary);
+  container.appendChild(table);
+  container.appendChild(canvas);
+
+  const metricsSection = document.getElementById('metrics-section');
+  metricsSection.appendChild(container);
+
+  // Chart.js blank rate bar chart
+  new Chart(document.getElementById('blankRateChart'), {
+    type: 'bar',
+    data: {
+      labels: chartLabels,
+      datasets: [{
+        label: 'Blank Rate (%)',
+        data: chartData,
+        backgroundColor: '#f72585'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      scales: {
+        x: { beginAtZero: true, max: 100 }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.raw}% blank`
+          }
+        }
+      }
+    }
+  });
+}
+
+    function renderCharts(data) {
+      let sts = {}, tags = {}, projs = {}, weeks = {}, months = {}, testers = {}, testNos = {};
+      let overdue = 0, ontime = 0, wfhCount = 0, wfoCount = 0;
+      let dayOfWeekCounts = {
+        'Sunday': { wfh: 0, wfo: 0 },
+        'Monday': { wfh: 0, wfo: 0 },
+        'Tuesday': { wfh: 0, wfo: 0 },
+        'Wednesday': { wfh: 0, wfo: 0 },
+        'Thursday': { wfh: 0, wfo: 0 },
+        'Friday': { wfh: 0, wfo: 0 },
+        'Saturday': { wfh: 0, wfo: 0 }
+      };
 
       data.forEach(r => {
         const dl = parseCellDate(r.Deadline);
         const cl = r['Completed/Closed at'] ? parseCellDate(r['Completed/Closed at']) : null;
         const st = parseCellDate(r['Testing started on']);
+        
+        // Work location analysis
+        const workLoc = getWorkLocation(st);
+        if (workLoc === 'wfh') wfhCount++;
+        else if (workLoc === 'wfo') wfoCount++;
 
-        // overdue/on-time
-        if (dl) {
+        // Day of week analysis
+        if (st) {
+          const dayName = st.toLocaleDateString('en', { weekday: 'long' });
+          if (workLoc === 'wfh') dayOfWeekCounts[dayName].wfh++;
+          else if (workLoc === 'wfo') dayOfWeekCounts[dayName].wfo++;
+        }
+
+        if (r.Status) sts[r.Status] = (sts[r.Status]||0)+1;
+
+if (dl) {
+          const today = new Date();
           if (!cl && dl < today) overdue++;
           else if (cl && cl > dl) overdue++;
           else if (cl) ontime++;
         }
-        // in progress & started not closed
-        if (st && !cl) { inProg++; startedNC++; }
-        // completed this month (matches filterMonth)
-        if (cl && (filterM === 'all' || cl.toLocaleString('default', { month: 'long' }) === filterM)) {
-          completedMonth++;
+        
+        // Tags processing
+        if (r.Tags) {
+          const tagList = r.Tags.toString().split(',').map(t => t.trim()).filter(t => t);
+          tagList.forEach(tag => tags[tag] = (tags[tag]||0)+1);
         }
-        // durations
-        if (st && cl) {
-          const diff = Math.ceil((cl - st) / (1000*60*60*24)) || 1;
-          totalDur += diff; cntDur++;
-          minDur = Math.min(minDur, diff);
-          maxDur = Math.max(maxDur, diff);
-        }
-        // testers/projs for unique/top
-        if (r.Name) testers[r.Name] = (testers[r.Name] || 0) + 1;
-        if (r['Project Name']) projs[r['Project Name']] = (projs[r['Project Name']] || 0) + 1;
-      });
-
-      const avgDur = cntDur ? (totalDur / cntDur).toFixed(2) : 'N/A';
-      const minD = minDur === Infinity ? 'N/A' : minDur;
-      const maxD = maxDur === 0 ? 'N/A' : maxDur;
-
-      const uniqueTesters = Object.keys(testers).length;
-      const topTester = Object.entries(testers).sort((a,b) => b[1]-a[1])[0]?.[0] || 'N/A';
-      const topProject = Object.entries(projs).sort((a,b) => b[1]-a[1])[0]?.[0] || 'N/A';
-
-      function addCard(title, value) {
-        const c = document.createElement('div');
-        c.className = 'metric-card';
-
-if (title === 'Top Project') {
-  c.classList.add('top-project');
-}
-
-        c.innerHTML = `<div class="section-title">${title}</div><div class="metric-number">${value}</div>`;
-        d.appendChild(c);
-      }
-
-      addCard('Total Tests', data.length);
-      addCard('Overdue Tests', overdue);
-      addCard('On-Time Tests', ontime);
-      addCard('In Progress', inProg);
-      addCard('Started Not Closed', startedNC);
-      addCard(`Completed (${filterM})`, completedMonth);
-      addCard('Avg. Duration (days)', avgDur);
-      addCard('Min Duration (days)', minD);
-      addCard('Max Duration (days)', maxD);
-      addCard('Unique Testers', uniqueTesters);
-      addCard('Top Tester', topTester);
-      addCard('Top Project', topProject);
-    }
-
-    function renderCharts(data) {
-      // groupBy first bucket
-      const gb = groupBy.value;
-      const buckets = {};
-      data.forEach(r => {
-        const key = (gb === 'none' || !r[gb]) ? 'All Data' : r[gb];
-        (buckets[key] || (buckets[key] = [])).push(r);
-      });
-      const use = buckets[Object.keys(buckets)[0]] || [];
-
-      let sts = {}, tags = {}, projs = {}, weeks = {}, months = {}, testers = {}, overdue=0, ontime=0;
-      use.forEach(r => {
-        const dl = parseCellDate(r.Deadline);
-        const cl = r['Completed/Closed at'] ? parseCellDate(r['Completed/Closed at']) : null;
-        if (r.Status) sts[r.Status] = (sts[r.Status]||0)+1;
-        if (dl) {
-          if (!cl && dl < new Date()) overdue++;
-          else if (cl && cl > dl) overdue++;
-          else if (cl) ontime++;
-        }
-        if (r.Tags) r.Tags.split(',').map(x=>x.trim()).filter(x=>x).forEach(t=>tags[t] = (tags[t]||0)+1);
+        
+        // Other aggregations
         if (r['Project Name']) projs[r['Project Name']] = (projs[r['Project Name']]||0)+1;
         if (r['Week No.']) weeks[r['Week No.']] = (weeks[r['Week No.']]||0)+1;
         if (r.Month) months[r.Month] = (months[r.Month]||0)+1;
         if (r.Name) testers[r.Name] = (testers[r.Name]||0)+1;
+        if (r['Test no.']) testNos[r['Test no.']] = (testNos[r['Test no.']]||0)+1;
       });
 
-      ['statusChart','overdueChart','tagChart','monthChart','weekChart','projectChart','testerChart']
-        .forEach(id => destroyCanvas(id));
+      // Chart configurations
+      const chartDefaults = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          datalabels: {
+            display: true,
+            color: 'white',
+            font: { weight: 'bold', size: 12 },
+            formatter: (value, ctx) => {
+              const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = ((value / total) * 100).toFixed(1);
+              return value > 0 ? `${value}\n(${percentage}%)` : '';
+            }
+          }
+        }
+      };
 
-      const base = { responsive:true, maintainAspectRatio:false, plugins:{ datalabels:{ anchor:'end', align:'top', formatter:v=>v } } };
+      // Status Chart - switch to horizontal bar for better readability
+      destroyCanvas('statusChart');
+      const topStatuses = Object.entries(sts).sort((a,b) => b[1]-a[1]);
+      new Chart(document.getElementById('statusChart'), {
+        type: 'bar',
+        data: {
+          labels: topStatuses.map(s => s[0]),
+          datasets: [{
+            label: 'Count',
+            data: topStatuses.map(s => s[1]),
+            backgroundColor: '#4361ee'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: { 
+            legend: { display: false },
+            datalabels: {
+              display: true,
+              font: { weight: 'bold', size: 12 },
+              formatter: (value) => value,
+              color: function(context) {
+                const value = context.dataset.data[context.dataIndex];
+                return value < 20 ? '#333' : 'white';
+              },
+              anchor: function(context) {
+                const value = context.dataset.data[context.dataIndex];
+                return value < 20 ? 'end' : 'center';
+              },
+              align: function(context) {
+                const value = context.dataset.data[context.dataIndex];
+                return value < 20 ? 'right' : 'center';
+              },
+              offset: function(context) {
+                const value = context.dataset.data[context.dataIndex];
+                return value < 20 ? 5 : 0;
+              }
+            }
+          },
+          scales: {
+            x: { 
+              beginAtZero: true, 
+              ticks: { stepSize: 1 }
+            },
+            y: { 
+              ticks: { 
+                maxRotation: 0,
+                font: { size: 11 }
+              }
+            }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
 
-      new Chart(document.getElementById('statusChart'), { type:'bar', data:{ labels:Object.keys(sts), datasets:[{ label:'Count', data:Object.values(sts) }]}, options:{ ...base, plugins:{ ...base.plugins, title:{ display:true, text:'Tests by Status' } } }, plugins:[ChartDataLabels] });
-      new Chart(document.getElementById('overdueChart'), { type:'bar', data:{ labels:['Overdue','On-Time'], datasets:[{ label:'Count', data:[overdue,ontime] }]}, options:{ ...base, plugins:{ ...base.plugins, title:{ display:true, text:'Overdue vs On-Time' } } }, plugins:[ChartDataLabels] });
-      new Chart(document.getElementById('tagChart'), { type:'pie', data:{ labels:Object.keys(tags), datasets:[{ label:'Count', data:Object.values(tags) }]}, options:{ ...base, plugins:{ ...base.plugins, title:{ display:true, text:'Tag Distribution' }, datalabels:{ color:'#fff' } } }, plugins:[ChartDataLabels] });
-      new Chart(document.getElementById('monthChart'), { type:'line', data:{ labels:Object.keys(months).sort(), datasets:[{ label:'Count', data:Object.keys(months).sort().map(m=>months[m]), fill:false, tension:0.1 }]}, options:{ ...base, plugins:{ ...base.plugins, title:{ display:true, text:'Tests Over Months' } } }, plugins:[ChartDataLabels] });
-      new Chart(document.getElementById('weekChart'), { type:'bar', data:{ labels:Object.keys(weeks).sort(), datasets:[{ label:'Count', data:Object.keys(weeks).sort().map(w=>weeks[w]) }]}, options:{ ...base, plugins:{ ...base.plugins, title:{ display:true, text:'Tests by Week No.' } } }, plugins:[ChartDataLabels] });
-      new Chart(document.getElementById('projectChart'), { type:'bar', data:{ labels:Object.keys(projs), datasets:[{ label:'Count', data:Object.values(projs) }]}, options:{ ...base, indexAxis:'y', plugins:{ ...base.plugins, title:{ display:true, text:'Tests by Project' } } }, plugins:[ChartDataLabels] });
-      new Chart(document.getElementById('testerChart'), { type:'bar', data:{ labels:Object.keys(testers), datasets:[{ label:'Count', data:Object.values(testers) }]}, options:{ ...base, indexAxis:'y', plugins:{ ...base.plugins, title:{ display:true, text:'Tester Distribution' } } }, plugins:[ChartDataLabels] });
+      // Tag Chart - switch to horizontal bar for better readability
+      destroyCanvas('tagChart');
+      const topTags = Object.entries(tags).sort((a,b) => b[1]-a[1]).slice(0, 10);
+      if (topTags.length > 0) {
+        new Chart(document.getElementById('tagChart'), {
+          type: 'bar',
+          data: {
+            labels: topTags.map(t => t[0].length > 20 ? t[0].substring(0, 20) + '...' : t[0]),
+            datasets: [{
+              label: 'Count',
+              data: topTags.map(t => t[1]),
+              backgroundColor: '#4cc9f0'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: { 
+              legend: { display: false },
+              datalabels: {
+                display: true,
+                font: { weight: 'bold', size: 12 },
+                formatter: (value) => value,
+                color: function(context) {
+                  const value = context.dataset.data[context.dataIndex];
+                  return value < 20 ? '#333' : 'white';
+                },
+                anchor: function(context) {
+                  const value = context.dataset.data[context.dataIndex];
+                  return value < 20 ? 'end' : 'center';
+                },
+                align: function(context) {
+                  const value = context.dataset.data[context.dataIndex];
+                  return value < 20 ? 'right' : 'center';
+                },
+                offset: function(context) {
+                  const value = context.dataset.data[context.dataIndex];
+                  return value < 20 ? 5 : 0;
+                }
+              }
+            },
+            scales: {
+              x: { 
+                beginAtZero: true, 
+                ticks: { stepSize: 1 }
+              },
+              y: { 
+                ticks: { 
+                  maxRotation: 0,
+                  font: { size: 10 }
+                }
+              }
+            }
+          },
+          plugins: [ChartDataLabels]
+        });
+      } else {
+        // Show empty state if no tags
+        const canvas = document.getElementById('tagChart');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '14px Poppins';
+        ctx.fillStyle = '#666';
+        ctx.textAlign = 'center';
+        ctx.fillText('No tags available', canvas.width/2, canvas.height/2);
+      }
+
+      // Work Location Chart
+      destroyCanvas('workLocationChart');
+      new Chart(document.getElementById('workLocationChart'), {
+        type: 'pie',
+        data: {
+          labels: ['Work From Home', 'Work From Office'],
+          datasets: [{
+            data: [wfhCount, wfoCount],
+            backgroundColor: ['#28a745', '#fd7e14']
+          }]
+        },
+        options: chartDefaults,
+        plugins: [ChartDataLabels]
+      });
+
+      // Month Chart
+      destroyCanvas('monthChart');
+      const monthOrder = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      const sortedMonths = monthOrder.filter(m => months[m]).map(m => [m, months[m]]);
+      new Chart(document.getElementById('monthChart'), {
+        type: 'bar',
+        data: {
+          labels: sortedMonths.map(m => m[0]),
+          datasets: [{
+            label: 'Tests',
+            data: sortedMonths.map(m => m[1]),
+            backgroundColor: '#4361ee'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { 
+            legend: { display: false },
+            datalabels: {
+              display: true,
+              color: 'white',
+              font: { weight: 'bold', size: 12 },
+              anchor: 'center',
+              align: 'center',
+              formatter: (value) => value
+            }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+
+      // Week Chart
+      destroyCanvas('weekChart');
+      const sortedWeeks = Object.entries(weeks).sort((a,b) => parseInt(a[0]) - parseInt(b[0]));
+      new Chart(document.getElementById('weekChart'), {
+        type: 'line',
+        data: {
+          labels: sortedWeeks.map(w => `Week ${w[0]}`),
+          datasets: [{
+            label: 'Tests',
+            data: sortedWeeks.map(w => w[1]),
+            borderColor: '#4361ee',
+            backgroundColor: 'rgba(67, 97, 238, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { 
+            legend: { display: false },
+            datalabels: {
+              display: true,
+              color: '#4361ee',
+              font: { weight: 'bold', size: 12 },
+              backgroundColor: 'white',
+              borderColor: '#4361ee',
+              borderWidth: 1,
+              borderRadius: 4,
+              padding: 4,
+              formatter: (value) => value
+            }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+
+
+// Work Location by Day Chart
+destroyCanvas('workLocationDayChart');
+const dayOrder = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+new Chart(document.getElementById('workLocationDayChart'), {
+  type: 'bar',
+  data: {
+    labels: dayOrder,
+    datasets: [
+      {
+        label: 'Work From Home',
+        data: dayOrder.map(day => dayOfWeekCounts[day].wfh),
+        backgroundColor: '#28a745'
+      },
+      {
+        label: 'Work From Office',
+        data: dayOrder.map(day => dayOfWeekCounts[day].wfo),
+        backgroundColor: '#fd7e14'
+      }
+    ]
+  },
+options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { 
+      legend: { position: 'top' },
+      datalabels: {
+        display: true,
+        color: 'white',
+        font: { weight: 'bold', size: 12 },
+        anchor: 'center',
+        align: 'center',
+        formatter: (value) => value > 0 ? value : ''
+      }
+    },
+    scales: {
+      x: { stacked: true },
+      y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } }
     }
+  },
+  plugins: [ChartDataLabels]
+});
+
+// Check if any work location overrides exist for the current filtered data
+const workLocationChartContainer = document.getElementById('workLocationDayChart').closest('.chart-box');
+
+// Remove any existing override note
+const existingOverrideNote = document.querySelector('.override-note');
+if (existingOverrideNote && existingOverrideNote.parentElement) {
+  existingOverrideNote.parentElement.remove();
+}
+
+const activeOverrides = [];
+
+// Check if overrides affect the currently filtered data
+const filteredDataDates = data.map(r => parseCellDate(r['Testing started on'])).filter(d => d);
+
+if (filteredDataDates.length > 0) {
+  filteredDataDates.forEach(dataDate => {
+    const dateStr = dataDate.toISOString().split('T')[0];
+    
+    workLocationOverrides.forEach(override => {
+      if (dateStr >= override.start && dateStr <= override.end) {
+        // Only add if not already added
+        if (!activeOverrides.find(ao => ao.start === override.start && ao.end === override.end)) {
+          activeOverrides.push(override);
+        }
+      }
+    });
+  });
+}
+
+// Only show override note if there are active overrides affecting current data
+if (activeOverrides.length > 0) {
+  // Create the override card
+  const overrideNote = document.createElement('div');
+  overrideNote.className = 'override-note chart-box';
+  overrideNote.style.borderLeft = '6px solid #f59e0b';
+  overrideNote.style.background = 'white';
+  overrideNote.style.marginTop = '0';
+  overrideNote.style.marginBottom = '1.5rem';
+  overrideNote.style.fontSize = '0.95rem';
+  overrideNote.style.boxShadow = 'var(--card-shadow)';
+  overrideNote.style.borderRadius = '12px';
+  overrideNote.style.padding = '0.75rem 0.75rem';
+  overrideNote.style.minHeight = 'auto';
+  overrideNote.style.height = 'auto';
+
+  let noteHTML = `
+    <div class="section-title mb-1">
+      <i class="fas fa-exclamation-circle me-2 text-warning"></i>
+      Work Location Override Active <small class="text-muted">(Affecting current data)</small>
+    </div>
+  `;
+
+  activeOverrides.forEach(override => {
+    const startFormatted = new Date(override.start).toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric'
+    });
+    const endFormatted = new Date(override.end).toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric'
+    });
+    const typeLabel = override.type === 'wfh' ? 'Work From Home' : 'Work From Office';
+
+    noteHTML += `
+      <div class="mb-1">
+        <strong>${startFormatted} – ${endFormatted}:</strong> ${typeLabel}
+        ${override.note ? ` (${override.note})` : ''}
+      </div>
+    `;
+  });
+
+  noteHTML += `
+    <div class="text-muted mt-3 mb-0" style="font-size: 0.85rem;">
+      <i class="fas fa-info-circle me-1"></i>
+      This may cause unexpected stacking in the chart above as normal schedules are overridden.
+    </div>
+  `;
+
+  overrideNote.innerHTML = noteHTML;
+
+  // Use exact same layout as charts with proper spacing
+  const overrideNoteCol = document.createElement('div');
+  overrideNoteCol.className = 'col-12 mb-4';
+  overrideNoteCol.appendChild(overrideNote);
+
+  // Place immediately after the work location day chart
+  workLocationChartContainer.parentElement.insertAdjacentElement('afterend', overrideNoteCol);
+}
+
+
+      // Project Chart
+      destroyCanvas('projectChart');
+
+
+
+      // Project Chart
+      destroyCanvas('projectChart');
+      const sortedProjs = Object.entries(projs).sort((a,b) => b[1]-a[1]);
+      new Chart(document.getElementById('projectChart'), {
+        type: 'bar',
+        data: {
+          labels: sortedProjs.map(p => p[0]),
+          datasets: [{
+            label: 'Tests',
+            data: sortedProjs.map(p => p[1]),
+            backgroundColor: '#4361ee'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: { 
+            legend: { display: false },
+            datalabels: {
+              display: true,
+              color: 'white',
+              font: { weight: 'bold', size: 12 },
+              anchor: 'center',
+              align: 'center',
+              formatter: (value) => value
+            }
+          },
+          scales: {
+            x: { beginAtZero: true, ticks: { stepSize: 1 } },
+            y: { ticks: { maxRotation: 0 } }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+
+      // Tester Chart
+      destroyCanvas('testerChart');
+      const sortedTesters = Object.entries(testers).sort((a,b) => b[1]-a[1]);
+      new Chart(document.getElementById('testerChart'), {
+        type: 'bar',
+        data: {
+          labels: sortedTesters.map(t => t[0]),
+          datasets: [{
+            label: 'Tests',
+            data: sortedTesters.map(t => t[1]),
+            backgroundColor: '#4cc9f0'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { 
+            legend: { display: false },
+            datalabels: {
+              display: true,
+              color: 'white',
+              font: { weight: 'bold', size: 12 },
+              anchor: 'center',
+              align: 'center',
+              formatter: (value) => value > 0 ? value : ''
+            }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+
+      // Test Number Chart
+      destroyCanvas('testNoChart');
+      const sortedTestNos = Object.entries(testNos).sort((a,b) => {
+        const numA = parseFloat(a[0]);
+        const numB = parseFloat(b[0]);
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB;
+        }
+        return a[0].localeCompare(b[0]);
+      });
+      new Chart(document.getElementById('testNoChart'), {
+        type: 'bar',
+        data: {
+          labels: sortedTestNos.map(t => `Test ${t[0]}`),
+          datasets: [{
+            label: 'Frequency',
+            data: sortedTestNos.map(t => t[1]),
+            backgroundColor: '#7209b7'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { 
+            legend: { display: false },
+            datalabels: {
+              display: true,
+              font: { weight: 'bold', size: 12 },
+              formatter: (value) => value > 0 ? value : '',
+              color: function(context) {
+                const value = context.dataset.data[context.dataIndex];
+                return value < 20 ? '#333' : 'white';
+              },
+              anchor: function(context) {
+                const value = context.dataset.data[context.dataIndex];
+                return value < 20 ? 'end' : 'center';
+              },
+              align: function(context) {
+                const value = context.dataset.data[context.dataIndex];
+                return value < 20 ? 'top' : 'center';
+              },
+              offset: function(context) {
+                const value = context.dataset.data[context.dataIndex];
+                return value < 20 ? 5 : 0;
+              }
+            }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+
+  // Overdue vs On-Time Chart
+        destroyCanvas('overdueChart');
+        new Chart(document.getElementById('overdueChart'), {
+          type: 'pie',
+          data: {
+            labels: ['Overdue', 'On-Time'],
+            datasets: [{
+              data: [overdue, ontime],
+              backgroundColor: ['#f72585', '#4cc9f0']
+            }]
+          },
+          options: chartDefaults,
+          plugins: [ChartDataLabels]
+        });
+
+        // Work Location Chart
+        destroyCanvas('workLocationChart');
+        new Chart(document.getElementById('workLocationChart'), {
+          type: 'pie',
+          data: {
+            labels: ['Work From Home', 'Work From Office'],
+            datasets: [{
+              data: [wfhCount, wfoCount],
+              backgroundColor: ['#28a745', '#fd7e14']
+            }]
+          },
+          options: chartDefaults,
+          plugins: [ChartDataLabels]
+        });
+
+// Overdue reasons analysis
+const overdueReasons = {};
+data.forEach(r => {
+  const dl = parseCellDate(r.Deadline);
+  const cl = r['Completed/Closed at'] ? parseCellDate(r['Completed/Closed at']) : null;
+  const today = new Date();
+  
+  // Check if task is overdue
+  const isOverdue = (dl && !cl && dl < today) || (dl && cl && cl > dl);
+  
+  if (isOverdue && r['Remarks/Roadblocks/Notes']) {
+    const remarks = r['Remarks/Roadblocks/Notes'].toString().toLowerCase().trim();
+    
+    // Categorize common reasons (you can expand this)
+    if (remarks.includes('bug') || remarks.includes('defect') || remarks.includes('issue')) {
+      overdueReasons['Technical Issues'] = (overdueReasons['Technical Issues'] || 0) + 1;
+    } else if (remarks.includes('requirement') || remarks.includes('scope') || remarks.includes('change')) {
+      overdueReasons['Requirement Changes'] = (overdueReasons['Requirement Changes'] || 0) + 1;
+    } else if (remarks.includes('resource') || remarks.includes('unavailable') || remarks.includes('busy')) {
+      overdueReasons['Resource Constraints'] = (overdueReasons['Resource Constraints'] || 0) + 1;
+    } else if (remarks.includes('dependency') || remarks.includes('blocked') || remarks.includes('waiting')) {
+      overdueReasons['Dependencies'] = (overdueReasons['Dependencies'] || 0) + 1;
+    } else if (remarks.includes('complex') || remarks.includes('difficult') || remarks.includes('time')) {
+      overdueReasons['Complexity'] = (overdueReasons['Complexity'] || 0) + 1;
+    } else {
+      overdueReasons['Other'] = (overdueReasons['Other'] || 0) + 1;
+    }
+  }
+});
+
+const topOverdueReason = Object.entries(overdueReasons).sort((a, b) => b[1] - a[1])[0]?.[0] || 'No data';
+
+
+    }
+
   </script>
 </body>
 </html>
